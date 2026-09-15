@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Patagon Store - Presentación para la Familia</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 15mm 12mm 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.5;
+      margin: 0;
+      padding: 0;
+      font-size: 13.5px;
+    }
+
+    .page {
+      page-break-after: always;
+      min-height: 98vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Header / Footer */
+    .doc-header {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-header .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg, #0ea5e9, #2563eb);
+      color: white;
+      font-weight: 800;
+      font-size: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+    }
+
+    .brand-text h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-text span {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .doc-badge {
+      background-color: #f1f5f9;
+      color: #475569;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border: 1px solid #e2e8f0;
+    }
+
+    .doc-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Cover / Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 26px 28px;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "🛍️";
+      position: absolute;
+      right: 15px;
+      bottom: -15px;
+      font-size: 100px;
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 30px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .hero-banner h1 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.25;
+    }
+
+    .hero-banner p {
+      margin: 0;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      max-width: 90%;
+      line-height: 1.5;
+    }
+
+    /* Content Typography & Cards */
+    h3.section-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 4px solid #0284c7;
+      padding-left: 10px;
+    }
+
+    .intro-box {
+      background: #f8fafc;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 10px 10px 0;
+      padding: 13px 16px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .card.accent-blue {
+      border-top: 4px solid #0284c7;
+    }
+
+    .card.accent-emerald {
+      border-top: 4px solid #10b981;
+    }
+
+    .card.accent-amber {
+      border-top: 4px solid #f59e0b;
+    }
+
+    .card.accent-purple {
+      border-top: 4px solid #8b5cf6;
+    }
+
+    .card-icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+
+    .card h4 {
+      margin: 0 0 5px 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .card p {
+      margin: 0;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* Metaphor Section */
+    .metaphor-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+      font-size: 12px;
+    }
+
+    .metaphor-table th {
+      background: #f1f5f9;
+      color: #334155;
+      text-align: left;
+      padding: 9px 12px;
+      font-weight: 700;
+      border-bottom: 2px solid #cbd5e1;
+    }
+
+    .metaphor-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #475569;
+    }
+
+    .metaphor-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .tech-pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+
+    .tech-pill.frontend {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .tech-pill.backend {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .tech-pill.database {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    /* Step Guide */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: #0284c7;
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-content h4 {
+      margin: 0 0 2px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .step-content p {
+      margin: 0;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    /* Highlight badge box */
+    .callout-box {
+      background: linear-gradient(to right, #eff6ff, #f0fdf4);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .callout-box h4 {
+      margin: 0 0 5px 0;
+      color: #1e40af;
+      font-size: 13.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .callout-box p {
+      margin: 0;
+      color: #1e3a5f;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0284c7;
+      margin-bottom: 2px;
+    }
+
+    .stat-lbl {
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .quote-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      border-radius: 0 10px 10px 0;
+      margin: 16px 0 8px 0;
+      font-style: italic;
+      color: #78350f;
+      font-size: 12.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== PÁGINA 1 ==================== -->
+  <div class="page">
+    <div>
+      <div class="doc-header">
+        <div class="brand">
+          <div class="brand-logo">P</div>
+          <div class="brand-text">
+            <h2>Patagon Store</h2>
+            <span>Proyecto Web Fullstack • Presentación Familiar</span>
+          </div>
+        </div>
+        <div class="doc-badge">Desarrollado con React & Python</div>
+      </div>
+
+      <div class="hero-banner">
+        <div class="hero-tag">🚀 Mi Proyecto de Programación</div>
+        <h1>¡Bienvenidos a mi tienda online!</h1>
+        <p>
+          He preparado este resumen para contarles con mucho cariño y en palabras muy sencillas en qué consiste 
+          <strong>Patagon Store</strong>: qué hace, cómo funciona por dentro y todo lo que aprendí 
+          programando cada una de sus partes.
+        </p>
+      </div>
+
+      <div class="intro-box">
+        💡 <strong>¿Qué es Patagon Store en pocas palabras?</strong><br>
+        Es una <strong>tienda virtual interactiva completa</strong> (como un Mercado Libre o Amazon a escala real), 
+        donde cualquier persona puede mirar productos, filtrar por lo que necesita, agregar artículos al carrito 
+        y simular una compra de verdad con boleta y entrega a domicilio.
+      </div>
+
+      <h3 class="section-title">¿Cómo funciona por dentro? (Metáfora de una tienda física)</h3>
+      <p style="margin-top:0; color:#475569; font-size:12px;">
+        Para entender qué hace un programador, imaginen que un sitio web funciona igual que un negocio tradicional:
+      </p>
+
+      <table class="metaphor-table">
+        <thead>
+          <tr>
+            <th style="width: 26%;">En una tienda de la calle</th>
+            <th style="width: 42%;">En Patagon Store</th>
+            <th style="width: 32%;">Término tecnológico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>El escaparate y las vitrinas</strong><br><small>Lo que el cliente ve y toca</small></td>
+            <td>La página web con sus fotos, colores, botones de compra, precios y buscador rápido.</td>
+            <td><span class="tech-pill frontend">Frontend (React + Vite)</span></td>
+          </tr>
+          <tr>
+            <td><strong>El bodeguero y la caja</strong><br><small>Quién prepara el pedido y calcula el cobro</small></td>
+            <td>El sistema detrás que valida compras, actualiza inventario y responde con rapidez.</td>
+            <td><span class="tech-pill backend">Backend (Python + Django)</span></td>
+          </tr>
+          <tr>
+            <td><strong>El libro de registro</strong><br><small>Donde nada se pierde ni se borra</small></td>
+            <td>El archivo digital seguro donde quedan guardados los productos y cada orden emitida.</td>
+            <td><span class="tech-pill database">Base de Datos (SQLite)</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val">100%</div>
+          <div class="stat-lbl">Interactivo</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">3</div>
+          <div class="stat-lbl">Categorías</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">Fullstack</div>
+          <div class="stat-lbl">React + Django API</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">24/7</div>
+          <div class="stat-lbl">Online y Offline</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      <span>Patagon Store • Proyecto Fullstack creado por Mauricio</span>
+      <span>Página 1 de 3</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 2 ==================== -->
+  <div class="page">
+    <div>
+      <div class="doc-header">
+        <div class="brand">
+          <div class="brand-logo">P</div>
+          <div class="brand-text">
+            <h2>Patagon Store</h2>
+            <span>Recorrido por las Funcionalidades</span>
+          </div>
+        </div>
+        <div class="doc-badge">Paseo guiado por la tienda</div>
+      </div>
+
+      <h3 class="section-title">Las 4 grandes partes de la página</h3>
+      <p style="margin-top:0; color:#475569; font-size:12px;">
+        Cada una de estas secciones fue programada con dedicación para que la experiencia sea fácil y moderna:
+      </p>
+
+      <div class="grid-2">
+        <div class="card accent-blue">
+          <div class="card-icon">🏠</div>
+          <h4>1. Portada y Catálogo de Productos</h4>
+          <p>
+            Al entrar, el cliente ve los productos destacados. Puede pulsar en las categorías 
+            <strong>🧸 Juguetes</strong>, <strong>⚡ Electrónica</strong> o <strong>📚 Libros</strong>. 
+            El buscador permite filtrar al instante escribiendo cualquier palabra.
+          </p>
+        </div>
+
+        <div class="card accent-emerald">
+          <div class="card-icon">🛒</div>
+          <h4>2. Carrito de Compras Inteligente</h4>
+          <p>
+            Al hacer clic en "Agregar al carrito", la barra superior se actualiza de inmediato. 
+            Calcula subtotales automáticamente, permite sumar o restar unidades e informa si el envío 
+            es gratis (por compras sobre $30.000 CLP).
+          </p>
+        </div>
+
+        <div class="card accent-amber">
+          <div class="card-icon">📦</div>
+          <h4>3. Checkout y Pedido en Línea</h4>
+          <p>
+            El comprador escribe su nombre, correo, teléfono y dirección de entrega. El sistema verifica 
+            que los datos sean válidos y genera una boleta u orden de pedido lista para ser enviada.
+          </p>
+        </div>
+
+        <div class="card accent-purple">
+          <div class="card-icon">⚙️</div>
+          <h4>4. Panel de Gestión (Administración)</h4>
+          <p>
+            ¡La oficina del dueño! En la página de administración se pueden crear productos nuevos, 
+            cambiar precios, actualizar fotos o dar de baja productos agotados en tiempo real.
+          </p>
+        </div>
+      </div>
+
+      <h3 class="section-title">Detalles y "pequeñas magias" que hacen la diferencia</h3>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">❤️</div>
+          <h4>Botón de Favoritos</h4>
+          <p>Permite guardar productos preferidos con un clic y animación de corazón.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <h4>Avisos en Pantalla (Toasts)</h4>
+          <p>Carteles modernos que confirman cada acción: "¡Producto agregado con éxito!".</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👁️</div>
+          <h4>Vista Rápida</h4>
+          <p>Una ventana emergente para ver fotos grandes y detalles sin salir del catálogo.</p>
+        </div>
+      </div>
+
+      <div class="callout-box">
+        <h4>🛡️ ¿Qué pasa si no hay internet o se apaga el servidor? (Modo Resiliente)</h4>
+        <p>
+          Muchas páginas fallan por completo si se desconecta su servidor. En <strong>Patagon Store</strong> 
+          programé un sistema inteligente: si el servidor de Python está activo, guarda todo en la base de datos; 
+          y si se apaga, cambia solo y al instante a la memoria del navegador (<code>localStorage</code>), 
+          para que la página nunca deje de responder ni se quede en blanco.
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      <span>Patagon Store • Proyecto Fullstack creado por Mauricio</span>
+      <span>Página 2 de 3</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 3 ==================== -->
+  <div class="page">
+    <div>
+      <div class="doc-header">
+        <div class="brand">
+          <div class="brand-logo">P</div>
+          <div class="brand-text">
+            <h2>Patagon Store</h2>
+            <span>Prueba en Familia y Mensaje Final</span>
+          </div>
+        </div>
+        <div class="doc-badge">¡Hagamos una prueba juntos!</div>
+      </div>
+
+      <h3 class="section-title">Desafío Familiar: ¡Hagamos una compra de prueba en 5 pasos!</h3>
+      <p style="margin-top:0; color:#475569; font-size:12px;">
+        Los invito a sentarse conmigo frente a la computadora para probar la tienda en directo:
+      </p>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>Abrir la página</h4>
+            <p>Entramos en el navegador a la dirección local: <code>http://localhost:5173</code>.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Elegir un regalo para alguien de la casa</h4>
+            <p>Usen las categorías o escriban en el buscador (ej: "consola", "libro", "peluche") para encontrarlo.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Pulsar "Agregar al carrito"</h4>
+            <p>Fíjense cómo el icono del carrito arriba a la derecha sube su número al segundo.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>Ir a Pagar y completar los datos</h4>
+            <p>Escriban su nombre y dirección. Verán el desglose completo del valor en pesos chilenos ($ CLP).</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h4>¡Confirmar pedido!</h4>
+            <p>El sistema genera la orden de compra y celebra la simulación exitosa de la compra.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">¿Por qué este proyecto es importante para mí?</h3>
+      <p style="margin-top:0; color:#475569; font-size:12px; line-height: 1.6;">
+        Aprender a programar es un camino de paciencia, lógica y creatividad. Este proyecto representa la unión 
+        de dos áreas fundamentales del software profesional: <strong>el diseño visual interactivo</strong> que ve el usuario, 
+        y <strong>los servidores y bases de datos</strong> que procesan la información de manera segura y confiable.
+      </p>
+
+      <div class="quote-box">
+        "Detrás de cada botón, color y cálculo de esta tienda hay muchas horas de estudio, curiosidad y ganas de crecer. 
+        Poder compartirlo hoy con ustedes y que puedan ver el resultado de mi trabajo es una gran alegría. 
+        ¡Muchas gracias por su apoyo de siempre!"
+        <div style="margin-top: 6px; font-weight: 700; font-style: normal; color: #92400e; text-align: right;">
+          — Con cariño, Mauricio ❤️
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      <span>Patagon Store • Proyecto Fullstack creado por Mauricio</span>
+      <span>Página 3 de 3</span>
+    </div>
+  </div>
+
+</body>
+</html>
