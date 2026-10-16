@@ -1,0 +1,64 @@
+/* Ajustes funcionales: Pooh conserva la identidad; tamaños legibles y ritmo compacto. */
+.storefront-navbar .navbar-favorites { display: inline-flex; align-items: center; justify-content: center; gap: .25rem; min-width: 2.75rem; min-height: 2.75rem; flex-shrink: 0; color: var(--brand-red-dark); font-size: var(--text-sm); }
+.navbar-favorites span { min-width: 1ch; }
+.favorites-page .products-grid { margin-top: var(--space-6); }
+.favorites-page h1 { font-size: var(--text-page-title); }
+.card .card-desc, .store-help p, .product-specs p, .product-fact-list dd { font-size: var(--text-base); line-height: 1.75; letter-spacing: .01em; }
+.card-price, .summary-row strong, .cart-item-subtotal { font-variant-numeric: tabular-nums; overflow-wrap: normal; }
+.storefront-home .shopping-needs { margin-block: var(--space-4); padding-block: var(--space-3); }
+.shopping-needs .shopping-needs-heading { margin-bottom: var(--space-3); }
+.shopping-needs .shopping-need { padding: var(--space-4); display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); column-gap: var(--space-3); align-content: start; }
+.shopping-needs .shopping-need-icon { grid-row: 1 / 4; width: 2.75rem; height: 2.75rem; margin: 0; }
+.shopping-needs .shopping-need h3 { font-size: var(--text-base); }
+.shopping-needs .shopping-need p { margin-bottom: var(--space-2); font-size: var(--text-sm); }
+.shopping-needs .shopping-need-action { grid-column: 2; min-height: 1.75rem; }
+.shopping-needs .shopping-needs-signature { display: none; }
+.product-gallery-thumbnails { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block: var(--space-4); }
+.product-gallery-thumbnails button { border: 2px solid var(--surface-border); background: white; padding: var(--space-1); border-radius: var(--ui-radius-control); width: 5rem; height: 5rem; cursor: pointer; }
+.product-gallery-thumbnails button[aria-pressed="true"] { border-color: var(--brand-teal-dark); box-shadow: 0 0 0 1px var(--brand-teal-dark); }
+.product-gallery-thumbnails img { object-fit: contain; width: 100%; height: 100%; border-radius: .25rem; }
+.product-fact-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-block: var(--space-4); }
+.product-fact-list > div { border-left: 3px solid var(--brand-yellow); padding-left: var(--space-3); }
+.product-fact-list dt { font-weight: var(--weight-bold); color: var(--brand-teal-dark); }
+.product-fact-list dd { margin: var(--space-1) 0 0; white-space: pre-line; overflow-wrap: anywhere; }
+.store-purchase-info { margin-block: var(--space-5); padding: var(--space-5); border: 1px solid var(--surface-border); border-top: 3px solid var(--brand-teal); border-radius: var(--ui-radius-surface); background: var(--brand-teal-light); }
+.store-purchase-info h2 { font-size: var(--text-lg); margin-bottom: var(--space-3); }
+.store-purchase-info dl { display: grid; gap: var(--space-3); margin-block: var(--space-3); }
+.store-purchase-info dt { font-weight: var(--weight-bold); color: var(--brand-teal-dark); }
+.store-purchase-info dd, .store-purchase-info p { margin: 0; font-size: var(--text-sm); line-height: var(--leading-body); overflow-wrap: anywhere; }
+.store-purchase-info > a { display: block; width: fit-content; min-height: 2.75rem; padding-block: var(--space-2); color: var(--brand-teal-dark); text-decoration: underline; text-underline-offset: .2em; font-size: var(--text-sm); }
+.store-purchase-demo { color: var(--brand-red-dark); }
+.admin-product-metadata { border: 1px solid var(--surface-border); border-radius: var(--ui-radius-control); padding: var(--space-4); min-width: 0; }
+.admin-product-metadata legend { font-weight: var(--weight-bold); padding-inline: var(--space-2); }
+.admin-product-metadata p { font-size: var(--text-sm); }
+.admin-need-options { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.admin-need-options label { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; }
+.admin-need-options input { width: 1.125rem; height: 1.125rem; accent-color: var(--brand-teal-dark); }
+.admin-spec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.admin-spec-grid label, .store-settings-admin label { display: grid; gap: var(--space-2); }
+.store-settings-admin { padding: var(--space-6); border: 1px solid var(--surface-border); border-radius: var(--ui-radius-surface); background: white; }
+.store-settings-admin form { display: grid; gap: var(--space-5); max-width: 50rem; margin-top: var(--space-5); }
+.store-settings-admin input, .store-settings-admin textarea { padding: var(--space-3); border: 1px solid var(--surface-border); font: inherit; width: 100%; }
+.store-settings-admin [role="alert"] { color: var(--brand-red-dark); overflow-wrap: anywhere; }
+@media (max-width: 48rem) {
+  .storefront-navbar .navbar { gap: var(--space-2); padding-inline: var(--space-3); }
+  .storefront-navbar .navbar-favorites { margin-left: 0; }
+  .shopping-needs .shopping-needs-heading > p { display: none; }
+  .shopping-needs .shopping-need p { display: none; }
+  .shopping-needs .shopping-need h3 { margin-bottom: var(--space-1); }
+}
+@media (max-width: 36rem) {
+  .storefront-home .storefront-categories { grid-template-columns: repeat(3, minmax(9rem, 1fr)); gap: var(--space-3); overflow-x: auto; padding-block: var(--space-3); scroll-snap-type: x proximity; }
+  .storefront-home .storefront-category { padding: var(--space-2) 0; gap: var(--space-2); border: 0; scroll-snap-align: start; }
+  .storefront-home .storefront-category strong { font-size: var(--text-base); }
+  .storefront-home .storefront-category small, .storefront-home .storefront-category > svg { display: none; }
+  .storefront-home .storefront-category img, .storefront-home .storefront-stationery-icon { width: 2rem; height: 2rem; }
+  .storefront-home .storefront-stationery-icon svg { width: 1.5rem; height: 1.5rem; }
+  .shopping-needs .shopping-needs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .shopping-needs .shopping-need { display: flex; padding: var(--space-3); gap: var(--space-1); }
+  .shopping-needs .shopping-need-icon { width: 2rem; height: 2rem; margin-bottom: var(--space-2); }
+  .shopping-needs .shopping-need-icon svg { width: 1.5rem; height: 1.5rem; }
+  .shopping-needs .shopping-need-action { font-size: var(--text-sm); }
+  .product-fact-list, .admin-spec-grid { grid-template-columns: minmax(0, 1fr); }
+  .store-settings-admin { padding: var(--space-4); }
+}

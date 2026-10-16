@@ -1,0 +1,69 @@
+/* Categorías: la misma firma de la portada, con foco en descubrir productos. */
+.patagon-catalog { --category-accent: var(--brand-teal-dark); }
+.patagon-catalog[data-category="libros"] { --category-accent: var(--brand-gold-text); }
+.patagon-catalog[data-category="juguetes"] { --category-accent: var(--brand-red-dark); }
+.catalog-page.patagon-catalog > .container {
+  padding: var(--space-6); border-top: 0; background: transparent;
+  border-color: transparent; margin-top: var(--space-2);
+}
+.patagon-catalog .category-breadcrumb { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-bottom: var(--space-5); font-size: var(--text-sm); color: var(--text-secondary); }
+.patagon-catalog .category-breadcrumb a { color: var(--brand-teal-dark); text-decoration: underline; }
+.patagon-catalog .patagon-category-heading {
+  display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  text-align: left; padding: 0; overflow: hidden; border-radius: var(--ui-radius-surface);
+  background: var(--brand-teal-dark); border-bottom: .25rem solid var(--brand-yellow);
+}
+.patagon-catalog .category-hero-copy { padding: var(--space-8) var(--space-10); align-self: center; min-width: 0; }
+.patagon-catalog .category-eyebrow { color: var(--brand-yellow-light); text-transform: uppercase; letter-spacing: var(--tracking-label); font-size: var(--text-sm); font-weight: var(--weight-bold); margin: 0 0 var(--space-3); }
+.patagon-catalog .patagon-category-heading h1 { --display-surface: var(--brand-teal-dark); color: white; line-height: var(--leading-heading); margin: 0 0 var(--space-4); letter-spacing: var(--tracking-heading); }
+.patagon-catalog .category-heading-icon { font-size: .8em; margin-right: var(--space-2); }
+.patagon-catalog .patagon-category-heading .category-intro { color: white; font-size: var(--text-base); max-width: 48ch; margin: 0 0 var(--space-5); line-height: var(--leading-body); }
+.patagon-catalog .category-explore { display: inline-flex; gap: var(--space-4); align-items: center; background: var(--brand-red-dark); color: white; padding: var(--space-3) var(--space-5); min-height: 2.75rem; border-radius: 2rem; font-weight: var(--weight-bold); text-decoration: none; transition: background-color var(--ui-transition); }
+.patagon-catalog .category-explore:hover { background: var(--orange-dark); }
+.patagon-catalog .category-hero-copy :focus-visible { outline-color: var(--brand-yellow-light); }
+.patagon-catalog .category-hero-art { position: relative; display: grid; place-items: center; background: #fffaf0; padding: var(--space-6); min-width: 0; }
+.patagon-catalog .category-hero-art img { position: relative; width: min(100%, 15rem); height: auto; aspect-ratio: 1; object-fit: contain; border-radius: 50%; }
+.patagon-catalog .category-stationery-art { position: relative; display: grid; place-items: center; width: min(100%, 15rem); aspect-ratio: 1; border-radius: 50%; background: var(--brand-yellow-light); color: var(--brand-teal-dark); border-bottom: .375rem solid var(--brand-red); }
+.patagon-catalog .category-stationery-art svg { width: 60%; height: auto; }
+.patagon-catalog .category-footprint { position: absolute; width: 7rem; height: 9rem; right: .5rem; top: .75rem; color: var(--brand-yellow); opacity: .23; transform: rotate(18deg); }
+.patagon-catalog .category-art-caption { position: relative; color: var(--text-secondary); font-size: var(--text-sm); margin-top: var(--space-2); }
+.patagon-catalog .category-switcher { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--space-3); padding: var(--space-4) var(--space-5); margin-block: var(--space-4) var(--space-5); border: 1px solid var(--surface-border); border-radius: var(--ui-radius-surface); background: var(--brand-teal-light); position: static; top: auto; z-index: auto; box-shadow: none; }
+.patagon-catalog .category-switcher > span { color: var(--brand-teal-dark); font-size: var(--text-sm); font-weight: var(--weight-semibold); margin-right: var(--space-3); }
+.patagon-catalog .category-switcher a { min-height: 2.75rem; display: inline-flex; align-items: center; padding: var(--space-2) var(--space-4); border: 1px solid var(--brand-teal-dark); border-radius: 2rem; color: var(--brand-teal-dark); background: white; font-weight: var(--weight-bold); text-decoration: none; }
+.patagon-catalog .category-switcher a:hover { background: var(--brand-yellow-light); }
+.patagon-catalog .category-switcher a[aria-current="page"] { background: var(--brand-teal-dark); color: white; }
+.patagon-catalog .stationery-guide { padding: var(--space-5); margin: var(--space-5) 0; border: 1px solid var(--surface-border); background: #fffaf0; }
+.patagon-catalog .stationery-guide h2 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+.patagon-catalog .stationery-guide > p { max-width: 65ch; }
+.patagon-catalog .stationery-lines { margin-block: var(--space-4); gap: var(--space-3); }
+.patagon-catalog .stationery-lines > div { padding: var(--space-3); border-left: .1875rem solid var(--brand-yellow); background: white; border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0; }
+.patagon-catalog .stationery-lines > div:nth-child(2) { border-left-color: var(--brand-teal); }
+.patagon-catalog .stationery-lines > div:nth-child(3) { border-left-color: var(--brand-red); }
+.patagon-catalog .stationery-lines dt { margin-bottom: var(--space-1); }
+.patagon-catalog .stationery-lines dd { font-size: var(--text-sm); }
+.patagon-catalog .catalog-filters { margin-top: var(--space-5); background: white; border-top: .1875rem solid var(--category-accent); box-shadow: var(--ui-shadow); }
+.patagon-catalog .catalog-filters label { color: var(--text-primary); }
+.patagon-catalog .catalog-filters input:not([type="checkbox"]), .patagon-catalog .catalog-filters select { border-color: var(--surface-border); background: #f7fbfa; font-size: var(--text-base); }
+.patagon-catalog .catalog-filters .availability-filter { display: flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; }
+.patagon-catalog .availability-filter input { width: 1.125rem; min-height: 1.125rem; height: 1.125rem; padding: 0; flex: 0 0 auto; accent-color: var(--brand-teal-dark); }
+.patagon-catalog .catalog-filters .btn-secondary { border-color: var(--brand-teal-dark); color: var(--brand-teal-dark); }
+.patagon-catalog .category-result-count { color: var(--text-secondary); font-size: var(--text-sm); margin: var(--space-3) 0 0; }
+.patagon-catalog .category-products { margin: var(--space-8) 0 var(--space-12); }
+.patagon-catalog .category-products-kicker { color: var(--category-accent); font-size: var(--text-sm); font-weight: var(--weight-bold); margin: 0 0 var(--space-1); }
+.patagon-catalog .catalog-list-title { margin: 0 0 var(--space-5); font-size: var(--text-section-title); border-left: .1875rem solid var(--brand-red); padding-left: var(--space-3); }
+.patagon-catalog .products-grid { align-items: stretch; }
+@media (max-width: 48rem) {
+  .catalog-page.patagon-catalog > .container { padding: var(--space-3) 0; }
+  .patagon-catalog .category-hero-copy { padding: var(--space-6); }
+  .patagon-catalog .category-hero-art { padding: var(--space-3); }
+  .patagon-catalog .category-switcher { gap: var(--space-2); }
+  .patagon-catalog .category-switcher > span { flex-basis: 100%; }
+}
+@media (max-width: 36rem) {
+  .patagon-catalog .patagon-category-heading { grid-template-columns: minmax(0, 1fr); }
+  .patagon-catalog .category-hero-art { display: none; }
+  .patagon-catalog .category-switcher a { flex: 1 1 auto; justify-content: center; padding-inline: var(--space-3); font-size: var(--text-sm); }
+  .patagon-catalog .stationery-lines { grid-template-columns: minmax(0, 1fr); }
+  .patagon-catalog .catalog-filters label { flex-basis: 100%; }
+  .patagon-catalog .category-products { margin-top: var(--space-6); }
+}

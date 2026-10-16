@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,7 +37,7 @@ export default class ErrorBoundary extends React.Component {
           alignItems: 'center',
           justifyContent: 'center',
           background: '#fdf6ee',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontFamily: 'var(--font-body)',
           padding: '24px',
           boxSizing: 'border-box',
         }}>
@@ -51,11 +51,11 @@ export default class ErrorBoundary extends React.Component {
             textAlign: 'center',
             border: '1px solid #eedec9',
           }}>
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🛒</span>
-            <h1 style={{ fontSize: '24px', color: '#1c1a18', marginBottom: '8px' }}>
+            <span style={{ fontSize: 'var(--text-4xl)', display: 'block', marginBottom: '16px' }}>🛒</span>
+            <h1 style={{ fontSize: 'var(--text-page-title)', color: '#1c1a18', marginBottom: '8px' }}>
               Actualizando Patagon Store
             </h1>
-            <p style={{ color: '#7a746e', fontSize: '15px', lineHeight: 1.6, marginBottom: '20px' }}>
+            <p style={{ color: '#7a746e', fontSize: 'var(--text-base)', lineHeight: 'var(--leading-body)', marginBottom: '20px' }}>
               Hubo una actualización en la tienda. Haz clic abajo para sincronizar tu navegador.
             </p>
 
@@ -64,13 +64,13 @@ export default class ErrorBoundary extends React.Component {
                 type="button"
                 onClick={this.handleReset}
                 style={{
-                  background: '#f26419',
+                  background: 'var(--brand-red-dark)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '999px',
                   padding: '12px 24px',
-                  fontSize: '15px',
-                  fontWeight: 700,
+                  fontSize: 'var(--text-base)',
+                  fontWeight: 'var(--weight-bold)',
                   cursor: 'pointer',
                 }}
               >
@@ -85,8 +85,8 @@ export default class ErrorBoundary extends React.Component {
                   border: '1px solid #d1d5db',
                   borderRadius: '999px',
                   padding: '12px 20px',
-                  fontSize: '14px',
-                  fontWeight: 600,
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 'var(--weight-semibold)',
                   cursor: 'pointer',
                 }}
               >

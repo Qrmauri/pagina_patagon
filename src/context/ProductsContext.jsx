@@ -1,8 +1,9 @@
-import { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { INITIAL_PRODUCTS, parsePrice } from '../services/productsData';
+import { useState, useEffect, useCallback } from 'react';
+import { INITIAL_PRODUCTS, parsePrice, withCatalogIllustration } from '../services/productsData';
 import { api } from '../services/api';
+import { ensureCatalogConnection } from '../services/catalogConnection';
 
-export const ProductsContext = createContext();
+import { ProductsContext } from './products-context';
 
 const STORAGE_KEY = 'patagon-products';
 
@@ -13,7 +14,7 @@ export function ProductsProvider({ children }) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map(withCatalogIllustration);
         }
       } catch (e) {
         console.error('Error leyendo productos de localStorage:', e);
@@ -22,36 +23,32 @@ export function ProductsProvider({ children }) {
     return INITIAL_PRODUCTS;
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
 
   // Cargar productos del Backend si está corriendo
-  const fetchFromBackend = useCallback(async () => {
+  const fetchFromBackend = useCallback(async (strict = false) => {
     try {
-      setLoading(true);
       const data = await api.getProducts();
-      if (Array.isArray(data) && data.length > 0) {
-        setProducts(data);
-        setBackendAvailable(true);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } else if (Array.isArray(data) && data.length === 0) {
-        // Si el backend está vacío, lo sembramos con los productos iniciales
-        await api.seedProducts();
-        const seededData = await api.getProducts();
-        setProducts(seededData);
-        setBackendAvailable(true);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seededData));
-      }
+      if (!Array.isArray(data)) throw new Error('Respuesta de catálogo inválida');
+      const catalog = data.map(withCatalogIllustration);
+      setProducts(catalog);
+      setBackendAvailable(true);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+      return catalog;
     } catch (err) {
       // Si el servidor de Django no está iniciado, funciona elegantemente con localStorage
       console.warn('Backend Django no detectado o inactivo. Usando almacenamiento local.', err.message);
       setBackendAvailable(false);
+      if (strict) throw new Error('No pudimos comprobar precios y stock. Intenta nuevamente antes de comprar.', { cause: err });
+      return null;
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Inicia una consulta asíncrona al catálogo externo.
     fetchFromBackend();
   }, [fetchFromBackend]);
 
@@ -64,121 +61,47 @@ export function ProductsProvider({ children }) {
     }
   }, [products]);
 
-  const addProduct = async (productData) => {
-    const parsedPrice = parsePrice(productData.price);
-    const localProduct = {
+  const saveProduct = async (productData, id = null) => {
+    await ensureCatalogConnection(backendAvailable, fetchFromBackend);
+    const payload = {
       title: productData.title,
       category: productData.category,
-      price: parsedPrice,
+      price: parsePrice(productData.price),
+      stock: productData.stock !== '' && productData.stock != null ? Math.max(0, parseInt(productData.stock, 10)) : 10,
       description: productData.description,
-      image: productData.image || '',
-      id: Date.now(),
+      characteristics: productData.characteristics || '',
+      shopping_needs: Array.isArray(productData.shopping_needs) ? productData.shopping_needs : [],
+      gallery: String(productData.galleryText || '').split(/\r?\n/).map(url => url.trim()).filter(Boolean),
+      specifications: productData.specifications || {},
+      cost_price: productData.cost_price === '' || productData.cost_price == null ? null : Number(productData.cost_price),
     };
-
-    if (backendAvailable) {
-      try {
-        let created;
-        if (productData.imageFile instanceof File) {
-          const formData = new FormData();
-          formData.append('title', productData.title);
-          formData.append('category', productData.category);
-          formData.append('price', parsedPrice);
-          formData.append('description', productData.description);
-          formData.append('image_file', productData.imageFile);
-          if (productData.image && !productData.image.startsWith('data:')) {
-            formData.append('image', productData.image);
-          }
-          created = await api.createProduct(formData);
-        } else {
-          created = await api.createProduct({
-            title: productData.title,
-            category: productData.category,
-            price: parsedPrice,
-            description: productData.description,
-            image: productData.image || '',
-          });
-        }
-        setProducts((prev) => [created, ...prev]);
-        return created;
-      } catch (err) {
-        console.error('Error guardando en backend, recurriendo a local:', err);
-      }
+    const image = productData.image || '';
+    let body;
+    if (productData.imageFile instanceof File) {
+      body = new FormData();
+      Object.entries(payload).forEach(([key, value]) => body.append(key, value && typeof value === 'object' ? JSON.stringify(value) : value ?? ''));
+      body.append('image_file', productData.imageFile);
+    } else {
+      body = { ...payload, ...(!image.startsWith('/products/illustrations/') ? { image } : {}) };
     }
-
-    setProducts((prev) => [localProduct, ...prev]);
-    return localProduct;
+    const saved = withCatalogIllustration(id == null ? await api.createProduct(body) : await api.updateProduct(id, body));
+    setProducts(previous => id == null ? [saved, ...previous] : previous.map(product => product.id === id ? saved : product));
+    return saved;
   };
 
-  const updateProduct = async (id, updatedData) => {
-    const parsedPrice = parsePrice(updatedData.price);
-    const fallbackImage = updatedData.image || '';
-
-    if (backendAvailable) {
-      try {
-        let updated;
-        if (updatedData.imageFile instanceof File) {
-          const formData = new FormData();
-          formData.append('title', updatedData.title);
-          formData.append('category', updatedData.category);
-          formData.append('price', parsedPrice);
-          formData.append('description', updatedData.description);
-          formData.append('image_file', updatedData.imageFile);
-          updated = await api.updateProduct(id, formData);
-        } else {
-          updated = await api.updateProduct(id, {
-            title: updatedData.title,
-            category: updatedData.category,
-            price: parsedPrice,
-            description: updatedData.description,
-            image: fallbackImage,
-          });
-        }
-        setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
-        return updated;
-      } catch (err) {
-        console.error('Error actualizando en backend, actualizando local:', err);
-      }
-    }
-
-    setProducts((prev) =>
-      prev.map((prod) =>
-        prod.id === id
-          ? {
-              ...prod,
-              title: updatedData.title,
-              category: updatedData.category,
-              price: parsedPrice,
-              description: updatedData.description,
-              image: fallbackImage,
-            }
-          : prod
-      )
-    );
-  };
-
+  const addProduct = (data) => saveProduct(data);
+  const updateProduct = (id, data) => saveProduct(data, id);
 
   const deleteProduct = async (id) => {
-    if (backendAvailable) {
-      try {
-        await api.deleteProduct(id);
-      } catch (err) {
-        console.error('Error eliminando en backend, eliminando local:', err);
-      }
-    }
-    setProducts((prev) => prev.filter((prod) => prod.id !== id));
+    await ensureCatalogConnection(backendAvailable, fetchFromBackend);
+    await api.deleteProduct(id);
+    setProducts(previous => previous.filter(product => product.id !== id));
   };
 
   const resetToDefault = async () => {
-    if (backendAvailable) {
-      try {
-        await api.seedProducts();
-        await fetchFromBackend();
-        return;
-      } catch (err) {
-        console.error('Error reseteando backend:', err);
-      }
-    }
-    setProducts(INITIAL_PRODUCTS);
+    await ensureCatalogConnection(backendAvailable, fetchFromBackend);
+    await api.seedProducts();
+    await fetchFromBackend();
   };
 
   return (
@@ -187,7 +110,7 @@ export function ProductsProvider({ children }) {
         products,
         loading,
         backendAvailable,
-        refreshProducts: fetchFromBackend,
+        refreshProducts: (strict = false) => { setLoading(true); return fetchFromBackend(strict); },
         addProduct,
         updateProduct,
         deleteProduct,
@@ -199,10 +122,3 @@ export function ProductsProvider({ children }) {
   );
 }
 
-export function useProducts() {
-  const context = useContext(ProductsContext);
-  if (!context) {
-    throw new Error('useProducts debe ser usado dentro de un ProductsProvider');
-  }
-  return context;
-}

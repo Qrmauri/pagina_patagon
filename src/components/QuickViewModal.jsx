@@ -1,7 +1,9 @@
+import { categoryLabel } from '../services/categoryLabels';
 import { useState } from 'react';
 import { useCart } from '../hooks/useCart';
-import { useToast } from '../context/ToastContext';
-import { formatPrice } from '../services/productsData';
+import { useToast } from '../hooks/useToast';
+import { Link } from 'react-router-dom';
+import { formatPrice, isProductIllustration } from '../services/productsData';
 
 export default function QuickViewModal({ product, onClose }) {
   const { addToCart } = useCart();
@@ -11,8 +13,9 @@ export default function QuickViewModal({ product, onClose }) {
   if (!product) return null;
 
   const handleAdd = () => {
-    addToCart(product, quantity, true);
-    addToast(`Se agregaron ${quantity}x "${product.title}" al carrito`, 'success');
+    const added = addToCart(product, quantity, true);
+    if (!added) return;
+    addToast(`Se agregaron ${added}x "${product.title}" al carrito`, 'success');
     onClose();
   };
 
@@ -26,22 +29,24 @@ export default function QuickViewModal({ product, onClose }) {
         <div className="quickview-grid">
           <div className="quickview-image-wrap">
             <img
-              src={product.image || 'https://images.unsplash.com/photo-1596460107916-430662021049?w=600&auto=format&fit=crop'}
+              src={product.image || '/product-placeholder.svg'}
               alt={product.title}
               onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1596460107916-430662021049?w=600&auto=format&fit=crop';
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/product-placeholder.svg';
               }}
             />
-            <span className="quickview-category-badge">{product.category}</span>
+            <span className="quickview-category-badge">{categoryLabel(product.category)}</span>
           </div>
 
           <div className="quickview-info">
             <span className="section-kicker">Vista Rápida</span>
             <h2 className="quickview-title">{product.title}</h2>
+            {isProductIllustration(product) && <p className="product-illustration-note">Imagen ilustrativa del producto</p>}
             
             <div className="quickview-rating-row">
-              <span className="card-rating">★★★★★ 4.9</span>
-              <span className="quickview-reviews-count">(38 opiniones verificadas)</span>
+              <span className="card-rating">Reseña de ejemplo</span>
+              <span className="quickview-reviews-count">Sin reseñas verificadas del producto</span>
             </div>
 
             <div className="quickview-price">
@@ -53,18 +58,18 @@ export default function QuickViewModal({ product, onClose }) {
             </p>
 
             <div className="quickview-perks">
-              <div><span>🚚</span> Despacho 24-48h a todo Chile</div>
-              <div><span>↩️</span> Garantía de satisfacción 30 días</div>
-              <div><span>🔒</span> Pago seguro con cifrado SSL</div>
+              <div><span>🚚</span> Consulta zonas y plazos de entrega</div>
+              <div><span>↩️</span> Condiciones de cambios disponibles en Ayuda</div>
+              <div><Link to="/ayuda">Contacto y condiciones de compra</Link></div>
             </div>
 
             <div className="quickview-actions">
               <div className="quickview-qty">
                 <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
                 <span>{quantity}</span>
-                <button onClick={() => setQuantity((q) => q + 1)}>+</button>
+                <button onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))} disabled={quantity >= product.stock}>+</button>
               </div>
-              <button onClick={handleAdd} className="btn-primary quickview-add-btn">
+              <button onClick={handleAdd} disabled={product.stock === 0} className="btn-primary quickview-add-btn">
                 🛒 Agregar al Carrito • {formatPrice(product.price * quantity)}
               </button>
             </div>

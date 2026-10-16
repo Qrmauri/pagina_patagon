@@ -95,16 +95,21 @@ cd patagon-store
 cd patagon-backend
 
 # Crear y activar entorno virtual
-python -m venv venv
+python -m venv .venv
 # En Windows:
-.\venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 # En Linux/Mac:
-source venv/bin/activate
+source .venv/bin/activate
 
 # Instalar dependencias
 pip install -r requirements.txt
 
+# Comprobar dependencias:
+python -m pip check
+
 # Aplicar migraciones
+# Desarrollo local (PowerShell):
+$env:DJANGO_DEBUG = "true"
 python manage.py migrate
 
 # Iniciar servidor
@@ -125,14 +130,36 @@ npm run dev
 
 ---
 
-## 🔑 Credenciales de Prueba
+## 🔑 Acceso administrativo
 
 - **Panel de Administración:** `http://localhost:5173/admin-login`
-  - **Usuario:** `admin`
-  - **Contraseña:** `patagon2025`
+  - Crea tu cuenta con `python manage.py createsuperuser` desde `patagon-backend`.
+  - Para creación automatizada, define `ADMIN_USER`, `ADMIN_EMAIL` y `ADMIN_PASSWORD` y ejecuta `python manage.py ensure_admin`.
+  - `ensure_admin` conserva la contraseña de las cuentas existentes y no eleva los permisos de usuarios normales. Para cambiar una contraseña usa `python manage.py changepassword USUARIO`.
 
 - **Django Admin Nativo:** `http://127.0.0.1:8000/admin/`
   *(Puedes crear tu propio superusuario con `python manage.py createsuperuser`)*
+
+### Configuración del servidor
+
+El backend lee variables del entorno del proceso; no carga archivos `.env` automáticamente.
+
+Para desarrollo manual en PowerShell, establece `$env:DJANGO_DEBUG = "true"` antes de ejecutar Django. En Bash usa `export DJANGO_DEBUG=true`. El lanzador `start-backend.bat` activa este modo cuando la variable no está definida. En desarrollo se genera una clave aleatoria persistente en `patagon-backend/.django-secret-key`, excluida de Git.
+
+Para producción configura:
+
+- `DJANGO_DEBUG=false`.
+- `DJANGO_SECRET_KEY`: clave aleatoria privada y persistente. Puedes generar una con `python -c "import secrets; print(secrets.token_urlsafe(64))"` y guardarla en el gestor de secretos del servidor.
+- `DJANGO_ALLOWED_HOSTS`: dominios separados por comas, por ejemplo `api.tutienda.cl`.
+- `DJANGO_CORS_ALLOWED_ORIGINS`: orígenes completos separados por comas, por ejemplo `https://tutienda.cl`.
+
+Sin una clave explícita, el servidor rechaza el arranque en producción. Los valores predeterminados permiten únicamente hosts y orígenes locales. Configura HTTPS y los ajustes de seguridad correspondientes a tu hosting y ejecuta `python manage.py check --deploy` antes de publicar.
+
+Los pedidos cancelados devuelven las existencias una sola vez y no pueden reabrirse; para repetir una compra crea un nuevo pedido. La API administrativa de pedidos permite modificar únicamente su estado para conservar los artículos y totales originales.
+
+El entorno del backend se encuentra en `patagon-backend/.venv`. El lanzador usa ese entorno y detiene el inicio si fallan las comprobaciones o migraciones. El antiguo `venv` se conserva, pero ya no se utiliza.
+
+El carrito limita las cantidades al stock del catálogo y actualiza precios y existencias antes de entrar al checkout. Si hay cambios, solicita revisar el carrito antes de continuar. En modo real, una caída de la API impide continuar hasta poder comprobar el catálogo; la demostración permite usar el catálogo local.
 
 ---
 

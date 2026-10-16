@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { INITIAL_TESTIMONIALS } from '../services/productsData';
 import { api } from '../services/api';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../hooks/useToast';
 
 const STORAGE_KEY = 'patagon-testimonials';
 
@@ -142,9 +142,9 @@ export default function TestimonialsSection() {
       <div className="section-heading" style={{ textAlign: 'center', justifyContent: 'center', marginBottom: '24px' }}>
         <div>
           <span className="section-kicker">Comunidad Patagon</span>
-          <h2>Clientes felices en todo Chile</h2>
-          <p style={{ color: '#7a746e', maxWidth: '600px', margin: '8px auto 0', fontSize: '15px' }}>
-            Tu opinión nos ayuda a seguir mejorando cada día. ¿Compraste con nosotros? ¡Comparte tu experiencia!
+          <h2>Reseñas de ejemplo</h2>
+          <p style={{ color: '#7a746e', maxWidth: 'var(--measure-text)', margin: '8px auto 0', fontSize: 'var(--text-base)' }}>
+            Estas reseñas son ficticias y muestran cómo se vería la sección de opiniones de una tienda.
           </p>
         </div>
       </div>
@@ -155,15 +155,15 @@ export default function TestimonialsSection() {
           type="button"
           onClick={() => setShowForm((prev) => !prev)}
           style={{
-            background: showForm ? '#eedec9' : '#f26419',
+            background: showForm ? '#eedec9' : 'var(--brand-red-dark)',
             color: showForm ? '#1c1a18' : '#fff',
             border: 'none',
             borderRadius: '999px',
             padding: '12px 28px',
-            fontSize: '15px',
-            fontWeight: 700,
+            fontSize: 'var(--text-base)',
+            fontWeight: 'var(--weight-bold)',
             cursor: 'pointer',
-            boxShadow: showForm ? 'none' : '0 4px 16px rgba(242,100,25,.3)',
+            boxShadow: showForm ? 'none' : '0 4px 16px rgba(201,33,25,.18)',
             transition: 'all 0.2s ease',
             display: 'inline-flex',
             alignItems: 'center',
@@ -190,17 +190,17 @@ export default function TestimonialsSection() {
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '20px', color: '#1c1a18', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: 'var(--text-lg)', color: '#1c1a18', marginBottom: '4px' }}>
               🌟 Comparte tu experiencia en Patagon Store
             </h3>
-            <p style={{ color: '#7a746e', fontSize: '14px' }}>
+            <p style={{ color: '#7a746e', fontSize: 'var(--text-sm)' }}>
               Tu comentario se publicará para que otros compradores conozcan tu experiencia.
             </p>
           </div>
 
           {/* Calificación de Estrellas Interactivas */}
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <span style={{ display: 'block', fontWeight: 700, fontSize: '14px', marginBottom: '8px', color: '#1c1a18' }}>
+            <span style={{ display: 'block', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginBottom: '8px', color: '#1c1a18' }}>
               ¿Cómo calificarías tu experiencia?
             </span>
             <div
@@ -208,8 +208,8 @@ export default function TestimonialsSection() {
                 display: 'inline-flex',
                 gap: '8px',
                 cursor: 'pointer',
-                fontSize: '32px',
-                lineHeight: 1,
+                fontSize: 'var(--text-2xl)',
+                lineHeight: 'var(--leading-display)',
               }}
               onMouseLeave={() => setHoverRating(0)}
             >
@@ -225,8 +225,8 @@ export default function TestimonialsSection() {
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
-                      fontSize: '32px',
-                      color: filled ? '#f59e0b' : '#d1d5db',
+                      fontSize: 'var(--text-2xl)',
+                      color: filled ? 'var(--brand-gold-text)' : 'var(--text-muted)',
                       transform: filled ? 'scale(1.15)' : 'scale(1)',
                       transition: 'transform 0.15s, color 0.15s',
                       padding: 0,
@@ -238,7 +238,7 @@ export default function TestimonialsSection() {
                 );
               })}
             </div>
-            <div style={{ color: '#f26419', fontWeight: 700, fontSize: '13px', marginTop: '6px', minHeight: '20px' }}>
+            <div style={{ color: 'var(--brand-red-dark)', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginTop: '6px', minHeight: '20px' }}>
               {RATING_LABELS[hoverRating || form.rating]}
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function TestimonialsSection() {
           {/* Campos Nombre y Ciudad */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
             <label>
-              <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', marginBottom: '6px', color: '#1c1a18' }}>
+              <span style={{ display: 'block', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginBottom: '6px', color: '#1c1a18' }}>
                 Tu Nombre *
               </span>
               <input
@@ -260,14 +260,14 @@ export default function TestimonialsSection() {
                   padding: '10px 14px',
                   borderRadius: '10px',
                   border: '1px solid #d1d5db',
-                  fontSize: '14px',
+                  fontSize: 'var(--text-sm)',
                   boxSizing: 'border-box',
                 }}
               />
             </label>
 
             <label>
-              <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', marginBottom: '6px', color: '#1c1a18' }}>
+              <span style={{ display: 'block', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginBottom: '6px', color: '#1c1a18' }}>
                 Ciudad o Región
               </span>
               <input
@@ -280,7 +280,7 @@ export default function TestimonialsSection() {
                   padding: '10px 14px',
                   borderRadius: '10px',
                   border: '1px solid #d1d5db',
-                  fontSize: '14px',
+                  fontSize: 'var(--text-sm)',
                   boxSizing: 'border-box',
                 }}
               />
@@ -289,7 +289,7 @@ export default function TestimonialsSection() {
 
           {/* Selector de Avatar */}
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', marginBottom: '8px', color: '#1c1a18' }}>
+            <span style={{ display: 'block', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginBottom: '8px', color: '#1c1a18' }}>
               Elige tu avatar o ícono:
             </span>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -299,11 +299,11 @@ export default function TestimonialsSection() {
                   type="button"
                   onClick={() => setForm((prev) => ({ ...prev, avatar: emoji }))}
                   style={{
-                    fontSize: '22px',
+                    fontSize: 'var(--text-lg)',
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    border: form.avatar === emoji ? '2px solid #f26419' : '1px solid #e5e7eb',
+                    border: form.avatar === emoji ? '2px solid var(--brand-red-dark)' : '1px solid #e5e7eb',
                     background: form.avatar === emoji ? '#fff0e6' : '#fff',
                     cursor: 'pointer',
                     transform: form.avatar === emoji ? 'scale(1.1)' : 'scale(1)',
@@ -318,7 +318,7 @@ export default function TestimonialsSection() {
 
           {/* Comentario */}
           <label style={{ display: 'block', marginBottom: '20px' }}>
-            <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', marginBottom: '6px', color: '#1c1a18' }}>
+            <span style={{ display: 'block', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-sm)', marginBottom: '6px', color: '#1c1a18' }}>
               Tu Comentario o Experiencia *
             </span>
             <textarea
@@ -333,8 +333,8 @@ export default function TestimonialsSection() {
                 padding: '12px 14px',
                 borderRadius: '10px',
                 border: '1px solid #d1d5db',
-                fontSize: '14px',
-                lineHeight: 1.5,
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-control)',
                 fontFamily: 'inherit',
                 boxSizing: 'border-box',
                 resize: 'vertical',
@@ -353,8 +353,8 @@ export default function TestimonialsSection() {
                 border: 'none',
                 borderRadius: '999px',
                 padding: '10px 20px',
-                fontWeight: 600,
-                fontSize: '14px',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
               }}
             >
@@ -364,13 +364,13 @@ export default function TestimonialsSection() {
               type="submit"
               disabled={submitting}
               style={{
-                background: '#f26419',
+                background: 'var(--brand-red-dark)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '999px',
                 padding: '10px 24px',
-                fontWeight: 700,
-                fontSize: '14px',
+                fontWeight: 'var(--weight-bold)',
+                fontSize: 'var(--text-sm)',
                 cursor: submitting ? 'not-allowed' : 'pointer',
                 opacity: submitting ? 0.7 : 1,
               }}
@@ -383,10 +383,10 @@ export default function TestimonialsSection() {
 
       {/* Cuadrícula de testimonios */}
       <div className="testimonials-grid">
-        {Array.isArray(testimonials) && testimonials.map((t) => {
+        {Array.isArray(testimonials) && testimonials.map((t, index) => {
           const safeRating = Math.min(5, Math.max(1, Math.round(Number(t.rating) || 5)));
           return (
-            <article key={t.id || t.created_at || Math.random()} className="testimonial-card fade-up">
+            <article key={t.id || `${t.created_at}-${index}`} className="testimonial-card fade-up">
               <div className="testimonial-stars">
                 {'★'.repeat(safeRating)}
                 <span style={{ color: '#d1d5db' }}>

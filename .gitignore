@@ -35,4 +35,5 @@ patagon-backend/db.sqlite3
 patagon-backend/media/
 .env
 .env.local
+.django-secret-key
 

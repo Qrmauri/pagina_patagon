@@ -10,9 +10,9 @@ html {
 }
 
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-body);
   color: #1c1a18;
-  line-height: 1.6;
+  line-height: var(--leading-body);
   overflow-x: hidden;
 }
 
@@ -23,8 +23,8 @@ body {
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
+  font-size: var(--text-base);
+  line-height: var(--leading-control);
   padding: 4px 8px;
   background: var(--code-bg);
 }

@@ -1,5 +1,6 @@
 @echo off
 setlocal
+if not defined DJANGO_DEBUG set "DJANGO_DEBUG=true"
 
 echo ==============================================
 echo   Iniciando Backend Django - Patagon Store
@@ -11,22 +12,30 @@ cd /d "%~dp0patagon-backend" || (
     exit /b 1
 )
 
-echo Verificando puerto 8000...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$con = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue; if ($con) { foreach ($c in $con) { Write-Host ('Liberando puerto 8000 previo (PID ' + $c.OwningProcess + ')...'); Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue } }"
-
-if exist "venv\Scripts\python.exe" (
-    echo Usando entorno virtual...
-    call venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
+if exist ".venv\Scripts\python.exe" (
+    set "BACKEND_PYTHON=.venv\Scripts\python.exe"
 ) else (
-    where py >nul 2>nul
-    if "%ERRORLEVEL%" == "0" (
-        echo Python no encontrado en venv. Usando py -3...
-        py -3 manage.py runserver 127.0.0.1:8000
-    ) else (
-        echo ERROR: No se encontro Python ni un entorno virtual valido.
-        pause
-        exit /b 1
-    )
+    echo ERROR: Falta el entorno .venv. Consulta la instalacion del backend en README.md.
+    pause
+    exit /b 1
 )
+
+"%BACKEND_PYTHON%" --version
+if errorlevel 1 goto backend_error
+"%BACKEND_PYTHON%" manage.py check
+if errorlevel 1 goto backend_error
+"%BACKEND_PYTHON%" manage.py migrate --noinput
+if errorlevel 1 goto backend_error
+"%BACKEND_PYTHON%" manage.py ensure_admin
+if errorlevel 1 echo Crea tu administrador con .venv\Scripts\python.exe manage.py createsuperuser.
+"%BACKEND_PYTHON%" manage.py runserver 127.0.0.1:8000
+goto backend_end
+
+:backend_error
+echo ERROR: El backend no supero las comprobaciones. Revisa el mensaje anterior.
+pause
+exit /b 1
+
+:backend_end
 
 pause

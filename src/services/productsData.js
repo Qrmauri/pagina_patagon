@@ -4,7 +4,8 @@ export const INITIAL_PRODUCTS = [
     title: 'Peluche Clásico',
     category: 'juguetes',
     price: 15990,
-    image: 'https://images.unsplash.com/photo-1594787318286-3d835c1cabab?w=400&auto=format&fit=crop',
+    stock: 15,
+    image: '/products/illustrations/peluche-clasico.webp',
     description: 'Peluche suave y adorable para los más pequeños',
   },
   {
@@ -12,7 +13,8 @@ export const INITIAL_PRODUCTS = [
     title: 'Consola Gaming',
     category: 'electrónica',
     price: 299990,
-    image: 'https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=400&auto=format&fit=crop',
+    stock: 8,
+    image: '/products/illustrations/consola-gaming.webp',
     description: 'Última generación para juegos ultra HD',
   },
   {
@@ -20,7 +22,8 @@ export const INITIAL_PRODUCTS = [
     title: 'Libro Aventuras',
     category: 'libros',
     price: 8990,
-    image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&auto=format&fit=crop',
+    stock: 20,
+    image: '/products/illustrations/libro-aventuras.webp',
     description: 'Historias fascinantes para todas las edades',
   },
   {
@@ -28,7 +31,8 @@ export const INITIAL_PRODUCTS = [
     title: 'Robot Educativo',
     category: 'juguetes',
     price: 45990,
-    image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&auto=format&fit=crop',
+    stock: 5,
+    image: '/products/illustrations/robot-educativo.webp',
     description: 'Aprende programación de forma divertida',
   },
   {
@@ -36,7 +40,8 @@ export const INITIAL_PRODUCTS = [
     title: 'Audífonos Premium',
     category: 'electrónica',
     price: 129990,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format&fit=crop',
+    stock: 12,
+    image: '/products/illustrations/audifonos-premium.webp',
     description: 'Sonido cristalino con cancelación de ruido',
   },
   {
@@ -44,10 +49,37 @@ export const INITIAL_PRODUCTS = [
     title: 'Libro de Ciencia',
     category: 'libros',
     price: 12990,
-    image: 'https://images.unsplash.com/photo-150784272343-583f20270319?w=400&auto=format&fit=crop',
+    stock: 18,
+    image: '/products/illustrations/libro-ciencia.webp',
     description: 'Explora los misterios del universo',
   },
+  { id: 7, title: 'Cuaderno escolar · ejemplo', category: 'libros', price: 2490, stock: 10, image: '/product-placeholder.svg', shopping_needs: ['escolar', 'oficina'], description: 'Producto de demostración para organizar apuntes. Reemplazar con un artículo real antes de vender.', specifications: {}, gallery: [] },
+  { id: 8, title: 'Lápices de colores · ejemplo', category: 'libros', price: 3990, stock: 10, image: '/product-placeholder.svg', shopping_needs: ['escolar', 'crear'], description: 'Ejemplo de materiales escolares y creativos. Precio y stock de demostración.', specifications: {}, gallery: [] },
+  { id: 9, title: 'Carpeta de oficina · ejemplo', category: 'libros', price: 1990, stock: 10, image: '/product-placeholder.svg', shopping_needs: ['oficina', 'escolar'], description: 'Ejemplo para organizar documentos. Reemplazar con información y fotografías reales.', specifications: {}, gallery: [] },
+  { id: 10, title: 'Pinturas para manualidades · ejemplo', category: 'libros', price: 4990, stock: 10, image: '/product-placeholder.svg', shopping_needs: ['crear', 'escolar'], description: 'Producto de demostración para proyectos creativos. No corresponde a una oferta real.', specifications: {}, gallery: [] },
 ];
+
+// Actualiza únicamente las imágenes originales de ejemplo. Conserva las fotos
+// personalizadas y las subidas al backend, incluso con el mismo título.
+const LEGACY_IMAGES = [
+  '1594787318286-3d835c1cabab', '1586348943529-beaae6c28db9',
+  '1512820790803-83ca734da794', '1485846234645-a62644f84728',
+  '1505740420928-5e560c06d30e', '150784272343-583f20270319',
+];
+
+export function withCatalogIllustration(product) {
+  if (product.image_file) return product;
+  const index = INITIAL_PRODUCTS.findIndex((item) => item.title === product.title);
+  if (index >= 0 && product.image === INITIAL_PRODUCTS[index].image.replace('.webp', '.png')) {
+    return { ...product, image: INITIAL_PRODUCTS[index].image };
+  }
+  if (index < 0 || !product.image?.startsWith(`https://images.unsplash.com/photo-${LEGACY_IMAGES[index]}?`)) return product;
+  return { ...product, image: INITIAL_PRODUCTS[index].image };
+}
+
+export function isProductIllustration(product) {
+  return product.image?.startsWith('/products/illustrations/') === true;
+}
 
 /**
  * Normaliza cualquier precio (string como "$15.990", "15990" o número) a número entero.

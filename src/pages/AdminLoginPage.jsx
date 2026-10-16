@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -11,27 +11,39 @@ export default function AdminLoginPage() {
   const { addToast } = useToast();
   const navigate = useNavigate();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Si ya está autenticado, redirigir limpiamente
   if (isAdmin) {
-    return <Navigate to="/admin-productos" replace />;
+    return <Navigate to="/admin" replace />;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = login(username, password);
+    setIsSubmitting(true);
+    try {
+      const result = await login(username, password);
 
-    if (result.success) {
-      addToast('Sesión de administrador iniciada con éxito', 'success');
-      navigate('/admin-productos');
-    } else {
-      addToast(result.error, 'error');
+      if (result.success) {
+        if (result.warning) {
+          addToast(result.warning, 'info');
+        }
+        addToast('Sesión de administrador iniciada con token JWT', 'success');
+        navigate('/admin');
+      } else {
+        addToast(result.error || 'Error al iniciar sesión', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Error inesperado', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
       <Navbar />
-      <main className="container" style={{ minHeight: '75vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+      <main className="container admin-login" style={{ minHeight: '75vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
         <div style={{
           width: '100%',
           maxWidth: '420px',
@@ -42,18 +54,18 @@ export default function AdminLoginPage() {
           border: '1px solid #eedec9',
         }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <span style={{ fontSize: '40px', display: 'block', marginBottom: '8px' }}>🔐</span>
-            <h1 style={{ fontFamily: 'var(--font-display, Georgia, serif)', fontSize: '26px', margin: 0 }}>
+            <span style={{ fontSize: 'var(--text-3xl)', display: 'block', marginBottom: '8px' }}>🔐</span>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-page-title)', margin: 0 }}>
               Acceso Administrativo
             </h1>
-            <p style={{ color: '#7a746e', fontSize: '14px', marginTop: '6px' }}>
+            <p style={{ color: '#7a746e', fontSize: 'var(--text-sm)', marginTop: '6px' }}>
               Ingresa tus credenciales para gestionar el catálogo y pedidos de Patagon Store.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px' }}>
             <label>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>Usuario</span>
+              <span style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', marginBottom: '6px' }}>Usuario</span>
               <input
                 type="text"
                 value={username}
@@ -65,7 +77,7 @@ export default function AdminLoginPage() {
             </label>
 
             <label>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>Contraseña</span>
+              <span style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', marginBottom: '6px' }}>Contraseña</span>
               <input
                 type="password"
                 value={password}
@@ -76,8 +88,8 @@ export default function AdminLoginPage() {
               />
             </label>
 
-            <button type="submit" style={buttonStyle}>
-              Ingresar al Panel →
+            <button type="submit" disabled={isSubmitting} style={{ ...buttonStyle, opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
+              {isSubmitting ? '⏳ Verificando credenciales...' : 'Ingresar al Panel →'}
             </button>
           </form>
 
@@ -86,7 +98,7 @@ export default function AdminLoginPage() {
             padding: '12px',
             background: 'var(--cream, #fdf6ee)',
             borderRadius: '12px',
-            fontSize: '12px',
+            fontSize: 'var(--text-sm)',
             color: '#7a746e',
             textAlign: 'center',
           }}>
@@ -95,7 +107,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '18px' }}>
-            <Link to="/" style={{ fontSize: '13px', color: '#7a746e', textDecoration: 'underline' }}>
+            <Link to="/" style={{ fontSize: 'var(--text-sm)', color: '#7a746e', textDecoration: 'underline' }}>
               ← Volver a la tienda
             </Link>
           </div>
@@ -110,20 +122,20 @@ const inputStyle = {
   padding: '11px 14px',
   borderRadius: '10px',
   border: '1px solid #d1d5db',
-  fontSize: '15px',
+  fontSize: 'var(--text-base)',
   outline: 'none',
   fontFamily: 'inherit',
 };
 
 const buttonStyle = {
   marginTop: '8px',
-  background: '#f26419',
+  background: 'var(--brand-red-dark)',
   color: '#fff',
   border: 'none',
   borderRadius: '999px',
   padding: '12px',
-  fontSize: '15px',
-  fontWeight: 700,
+  fontSize: 'var(--text-base)',
+  fontWeight: 'var(--weight-bold)',
   cursor: 'pointer',
   transition: 'background 0.2s',
 };

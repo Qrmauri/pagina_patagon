@@ -1,0 +1,141 @@
+/* Sistema tipográfico Patagon. La migración de reglas heredadas se hace por componente. */
+:root {
+  --font-display: 'Pooh', 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-fallback: 'Nunito', sans-serif;
+
+  /* Escala mayor 1,25; tamaños menores limitados a 14 px con raíz de 16 px. */
+  --text-sm: .875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953125rem;
+  --text-3xl: 2.44140625rem;
+  --text-4xl: 3.0517578125rem;
+  --text-display: clamp(1.953125rem, 1.2rem + 2.2vw, 2.75rem);
+  --text-page-title: clamp(1.953125rem, 1.4rem + 1.5vw, 2.25rem);
+  --text-section-title: clamp(1.5625rem, 1.2rem + 1.2vw, 1.953125rem);
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-display: 400;
+
+  --leading-display: 1.15;
+  --leading-heading: 1.25;
+  --leading-body: 1.7;
+  --leading-control: 1.6;
+  --tracking-display: -.015em;
+  --tracking-heading: -.01em;
+  --tracking-body: .01em;
+  --tracking-label: .05em;
+  --measure-text: 65ch;
+  --display-thinning: .07em;
+
+  /* Espaciado de lectura: múltiplos de 4 px con raíz de 16 px. */
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Variantes existentes de la paleta, adecuadas para texto sobre blanco. */
+  --text-primary: #344b46;
+  --text-secondary: var(--ink-mid);
+  --text-muted: var(--ink-soft);
+  --text-link: var(--brand-teal-dark);
+  --text-accent: var(--brand-red-dark);
+  --text-on-dark: #d3e7e1;
+  --code-bg: var(--brand-teal-light);
+}
+
+/* Pooh solo tiene un peso real: evitar negritas artificiales en textos pequeños. */
+html { font-size: 100%; font-synthesis: none; }
+body { font-family: var(--font-body); font-size: var(--text-base); font-weight: var(--weight-regular); line-height: var(--leading-body); letter-spacing: var(--tracking-body); color: var(--text-primary); }
+
+/* Baja especificidad: no fuerza cambios sobre componentes aún sin migrar. */
+:where(h1, h2, h3, h4, h5, h6) { margin: 0; line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); overflow-wrap: break-word; }
+:where(h1, h2) { font-family: var(--font-display); font-weight: var(--weight-display); font-synthesis: none; }
+:where(h1) { font-size: var(--text-page-title); }
+:where(h2) { font-size: var(--text-section-title); }
+:where(h3, h4, h5, h6) { font-family: var(--font-body); font-weight: var(--weight-bold); }
+:where(h3) { font-size: var(--text-lg); }
+:where(h4) { font-size: var(--text-base); }
+:where(h5, h6) { font-size: var(--text-sm); }
+:where(p) { font-size: var(--text-base); line-height: var(--leading-body); letter-spacing: var(--tracking-body); }
+:where(small) { font-size: var(--text-sm); line-height: var(--leading-body); }
+:where(a) { text-underline-offset: .2em; }
+:where(button, input, select, textarea) { font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-control); }
+:where(button) { font-weight: var(--weight-semibold); }
+:where(label) { font-size: var(--text-sm); font-weight: var(--weight-semibold); line-height: var(--leading-control); }
+:where(ul, ol, dl) { line-height: var(--leading-body); }
+:where(code, pre) { font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body); }
+:where(code) { background: var(--code-bg); }
+
+/* Roles reutilizables para la aplicación gradual del sistema. */
+.type-display { font-family: var(--font-display); font-size: var(--text-display); font-weight: var(--weight-display); line-height: var(--leading-display); letter-spacing: var(--tracking-display); }
+.type-prose { max-inline-size: var(--measure-text); }
+.type-prose > * + * { margin-block-start: var(--space-4); }
+.type-prose :is(ul, ol) { padding-inline-start: var(--space-6); }
+.type-label { font-size: var(--text-sm); font-weight: var(--weight-bold); line-height: var(--leading-control); letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.type-price { font-family: var(--font-body); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
+
+/* La administración mantiene la fuente de lectura previa, independiente de la tienda. */
+.admin-dashboard-wrapper, .admin-login {
+  --font-body: 'Nunito', sans-serif;
+  --font-display: 'Nunito', sans-serif;
+  --leading-body: 1.6;
+  --leading-control: 1.5;
+  --tracking-body: 0;
+  --tracking-label: .08em;
+  --text-primary: var(--ink);
+  --text-page-title: clamp(1.953125rem, 1.4rem + 1.8vw, 2.44140625rem);
+  font-family: var(--font-body);
+  letter-spacing: 0;
+  line-height: var(--leading-body);
+}
+
+/* Pooh identifica los títulos; Nunito mantiene legibles textos y controles. */
+h2 { font-family: var(--font-body); font-weight: var(--weight-bold); }
+p { max-inline-size: var(--measure-text); }
+.storefront-home p, .catalog-page p, .product-detail-surface p, .store-help p,
+.tracking-page p, .cart-page p, .admin-dashboard-wrapper p { max-inline-size: min(100%, var(--measure-text)); }
+.storefront-hero h1 { font-size: var(--text-display); }
+.catalog-page h1, .store-help h1, .cart-page--shop .cart-heading h1 { font-size: var(--text-page-title); }
+.storefront-section-heading h2, .products-heading h2 { font-size: var(--text-section-title); }
+.catalog-list-title, .product-information-heading { font-family: var(--font-body); font-size: var(--text-lg); margin-block: var(--space-6) var(--space-4); }
+.site-footer h2 { font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-heading); letter-spacing: var(--tracking-label); }
+.site-footer p { color: var(--text-on-dark); }
+.product-info-tabs { flex-wrap: wrap; }
+.storefront-hero-lines li { line-height: var(--leading-control); }
+.patagon-story-copy p { line-height: var(--leading-body); }
+input, select, textarea { font: inherit; }
+:where(a, button, input, select, textarea):focus-visible { outline: .1875rem solid var(--brand-teal-dark); outline-offset: .1875rem; }
+.storefront-hero :focus-visible, .site-footer :focus-visible { outline-color: var(--brand-yellow-light); }
+.catalog-filters input, .catalog-filters select { font-size: var(--text-base); }
+.storefront-home .benefits-section { gap: var(--space-4); padding-block: var(--space-6); }
+.storefront-home .benefits-section > a { padding: var(--space-4); }
+
+/* Roles de título con prioridad sobre las familias heredadas de cada sección.
+   Administración conserva sus tokens y no participa de este selector. */
+body :is(main:not(.admin-login), .site-footer, .cart-drawer, .quickview-modal) :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-synthesis: none;
+}
+.storefront-category strong { font-family: var(--font-display); font-weight: var(--weight-display); }
+
+@media (max-width: 48rem) {
+  .storefront-hero-copy { padding: var(--space-8) var(--space-6); }
+  .storefront-home > .container { padding-inline: var(--space-4); }
+  .storefront-featured-product { grid-template-columns: minmax(5rem, .8fr) minmax(0, 1fr); gap: var(--space-3); }
+  .storefront-featured-copy p { font-size: var(--text-lg); }
+  .cart-page--shop .cart-steps { flex-wrap: wrap; }
+  .patagon-story-copy { padding: var(--space-6); }
+}

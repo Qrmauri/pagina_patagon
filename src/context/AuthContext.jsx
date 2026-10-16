@@ -1,18 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../services/api';
 
-const AuthContext = createContext();
+import { AuthContext } from '../hooks/useAuth';
 
 const ADMIN_STORAGE_KEY = 'patagon_admin_auth';
 
-// Credenciales por defecto para el administrador
-const DEFAULT_CREDENTIALS = {
-  user: 'admin',
-  pass: 'patagon2025',
-};
-
 export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(() => {
-    return localStorage.getItem(ADMIN_STORAGE_KEY) === 'true';
+    const hasToken = !!api.getStoredToken();
+    return hasToken;
   });
 
   useEffect(() => {
@@ -23,18 +19,22 @@ export function AuthProvider({ children }) {
     }
   }, [isAdmin]);
 
-  const login = (username, password) => {
-    if (
-      username.trim().toLowerCase() === DEFAULT_CREDENTIALS.user &&
-      password === DEFAULT_CREDENTIALS.pass
-    ) {
+  const login = async (username, password) => {
+    try {
+      // 1. Intentar autenticación real con JWT en Django REST Framework
+      await api.login(username.trim(), password);
       setIsAdmin(true);
       return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message || 'Usuario o contraseña incorrectos.',
+      };
     }
-    return { success: false, error: 'Usuario o contraseña incorrectos' };
   };
 
   const logout = () => {
+    api.logout();
     setIsAdmin(false);
   };
 
@@ -45,10 +45,3 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
-  }
-  return context;
-}
