@@ -237,13 +237,13 @@
 .patagon-story { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr); border: 1px solid #e7d7a8; border-radius: 16px; overflow: hidden; margin: 40px 0; background: #fffaf0; }
 .patagon-story-copy { padding: 40px; }
 .patagon-story-copy .section-kicker { color: var(--brand-teal-dark); }
-.storefront-home .patagon-story h2 { font-family: var(--font-display); font-weight: var(--weight-regular); font-size: var(--text-page-title); line-height: var(--leading-heading); letter-spacing: 0; color: var(--brand-red-dark); paint-order: fill stroke; -webkit-text-stroke: var(--display-thinning) #fffaf0; margin: 12px 0 20px; }
+.storefront-home .patagon-story h2 { font-family: var(--font-display); font-weight: var(--weight-display); font-size: var(--text-page-title); line-height: var(--leading-heading); letter-spacing: 0; color: var(--brand-red-dark); paint-order: fill stroke; -webkit-text-stroke: var(--display-thinning) #fffaf0; margin: 12px 0 20px; }
 .patagon-story-copy p { max-width: 540px; color: #455650; line-height: var(--leading-body); }
 .patagon-story-link { display: inline-flex; gap: 12px; align-items: center; min-height: 44px; margin-top: 20px; color: var(--brand-teal-dark); font-weight: var(--weight-bold); text-decoration: underline; text-underline-offset: 5px; }
 .patagon-story-link:hover { color: #005951; }
 .patagon-story-art { position: relative; min-height: 320px; background: #ffedb4; overflow: hidden; }
 .patagon-story-footprint { position: absolute; width: 156px; height: 208px; left: calc(50% - 78px); top: calc(50% - 90px); color: var(--brand-red); transform: rotate(-18deg); }
-.patagon-story-stamp { position: absolute; top: 24px; right: 24px; font-family: var(--font-display); font-weight: var(--weight-regular); font-size: var(--text-lg); color: #00766f; transform: rotate(7deg); }
+.patagon-story-stamp { position: absolute; top: 24px; right: 24px; font-family: var(--font-display); font-weight: var(--weight-display); font-size: var(--text-lg); color: #00766f; transform: rotate(7deg); }
 .patagon-story-token { position: absolute; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 16px; background: #fff; box-shadow: 0 4px 0 #694e1212; }
 .patagon-story-token--pencil { left: 12%; top: 14%; color: var(--brand-teal-dark); transform: rotate(-12deg); }
 .patagon-story-token--puzzle { right: 10%; top: 45%; background: var(--brand-teal-dark); color: #fff; transform: rotate(14deg); }

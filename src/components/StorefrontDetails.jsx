@@ -1,4 +1,4 @@
-import { ArrowRight, Heart, MagnifyingGlass, Plus, ShoppingBag } from '@phosphor-icons/react';
+import { CaretDown, ArrowRight, Heart, MagnifyingGlass, Plus, ShoppingBag } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import './StorefrontDetails.css';
 
@@ -11,6 +11,7 @@ const steps = [
 export default function StorefrontDetails() {
   return (
     <div className="storefront-details">
+      <details className="home-discover-more"><summary>Cómo preparar tu selección <CaretDown size={22} aria-hidden="true" /></summary>
       <section className="idea-journey" aria-labelledby="idea-journey-title">
         <div className="idea-journey-heading">
           <span className="section-kicker">De la inspiración a tu carrito</span>
@@ -28,6 +29,7 @@ export default function StorefrontDetails() {
         </ol>
         <Link to="/favoritos" className="idea-journey-link">Ver mis favoritos <ArrowRight size={18} aria-hidden="true" /></Link>
       </section>
+      </details>
 
       <section className="storefront-faq" aria-labelledby="storefront-faq-title">
         <div className="storefront-faq-intro">

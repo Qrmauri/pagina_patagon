@@ -126,7 +126,7 @@ export default function CartPage() {
               {completedOrder.demo ? '¡Demo completada' : '¡Gracias por tu pedido'}, {completedOrder.customer_name}!
             </h1>
             <p style={{ color: '#7a746e', fontSize: 'var(--text-base)', marginBottom: '24px' }}>
-              {completedOrder.demo ? 'Simulación completada. No se realizó ningún cobro ni se enviarán productos.' : 'Tu pedido quedó registrado y pendiente de confirmación de pago.'}
+              {completedOrder.demo ? 'Simulación completada. No se realizó ningún cobro ni se enviarán productos.' : 'Tu pedido quedó registrado. Las existencias se confirman al conciliar el pago; todavía no hay una reserva de productos.'}
             </p>
 
             <div style={{
@@ -145,6 +145,7 @@ export default function CartPage() {
               <div><strong>Total del pedido:</strong> <span style={{ color: 'var(--brand-red-dark)', fontWeight: 'var(--weight-bold)' }}>{formatPrice(completedOrder.total)}</span></div>
               <div><strong>Correo:</strong> {completedOrder.customer_email}</div>
               <div><strong>Destino:</strong> {completedOrder.address}, {completedOrder.city}</div>
+              {completedOrder.tracking_token && <div style={{ overflowWrap: 'anywhere' }}><strong>Código privado:</strong> {completedOrder.tracking_token}<br /><small>Guárdalo para consultar tu pedido durante 30 días.</small></div>}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '380px', margin: '0 auto' }}>
@@ -172,7 +173,7 @@ export default function CartPage() {
 
               {!completedOrder.demo && <button
                 type="button"
-                onClick={() => navigate(`/seguimiento?id=${completedOrder.id}&email=${encodeURIComponent(completedOrder.customer_email)}`)}
+                onClick={() => navigate('/seguimiento', { state: { trackingToken: completedOrder.tracking_token } })}
                 style={{
                   background: '#ffffff',
                   color: '#2c7a49',

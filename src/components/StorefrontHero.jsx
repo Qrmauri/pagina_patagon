@@ -1,6 +1,8 @@
-import { ArrowRight, Sparkle } from '@phosphor-icons/react';
+import { ArrowRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import BrandFootprint from './BrandFootprint';
+import HeroPhotoCarousel from './HeroPhotoCarousel';
+import { PencilStroke } from './BrandDoodles';
 
 export default function StorefrontHero() {
   return (
@@ -8,7 +10,7 @@ export default function StorefrontHero() {
       <div className="storefront-hero-copy">
         <BrandFootprint className="storefront-footprint" />
         <p className="storefront-eyebrow">Patagon Store <span className="storefront-signature">Un mundo de ideas</span></p>
-        <h1 id="storefront-title">Ideas para<br /><span className="storefront-title-accent">crear</span> y jugar.</h1>
+        <h1 id="storefront-title">Ideas para<br /><span className="storefront-title-accent">crear<PencilStroke /></span> y jugar.</h1>
         <p className="storefront-description">Del primer cuaderno a tu próximo proyecto. Librería, juguetes y electrónica para aprender y disfrutar cada día.</p>
         <div className="storefront-hero-actions">
           <a href="#productos" className="btn-primary storefront-cta">Explorar productos <ArrowRight size={22} aria-hidden="true" /></a>
@@ -18,11 +20,7 @@ export default function StorefrontHero() {
           <li>Escolar</li><li>Oficina</li><li>Manualidades</li><li>Libros</li>
         </ul>
       </div>
-      <figure className="storefront-hero-image">
-        <img src="/brand/storefront-hero.webp" alt="Ilustración de una fachada turquesa de Patagon Store con libros y juguetes en sus vitrinas" width="1751" height="898" fetchPriority="high" />
-        <div className="storefront-hero-seal" aria-hidden="true"><Sparkle size={24} weight="duotone" /><span>Pequeñas cosas.<br /><strong>Grandes ideas.</strong></span></div>
-        <figcaption>Ilustración conceptual</figcaption>
-      </figure>
+      <HeroPhotoCarousel />
     </section>
   );
 }

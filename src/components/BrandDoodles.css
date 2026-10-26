@@ -1,0 +1,20 @@
+/* Trazos de papelería: decorativos, sin movimiento ni interacción. */
+.brand-pencil-stroke { display: block; width: 9rem; height: 2rem; flex-shrink: 0; stroke: var(--brand-yellow); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.brand-pencil-stroke path:last-child { stroke: var(--brand-red); stroke-width: 1.3; opacity: .7; }
+.brand-doodle-divider { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .5rem 1rem; margin-block: .25rem 1rem; pointer-events: none; user-select: none; }
+.brand-doodle-divider > .brand-pencil-stroke { opacity: .65; transform: rotate(-4deg); }
+.brand-doodle-divider > .brand-pencil-stroke:last-child { transform: rotate(176deg); stroke: var(--brand-teal); }
+.brand-doodle-trail { display: flex; align-items: center; gap: 1rem; }
+.brand-doodle-trail svg { width: 1.2rem; height: 1.6rem; color: var(--brand-teal); opacity: .55; transform: rotate(58deg) translateY(.25rem); }
+.brand-doodle-trail svg:nth-child(2) { color: var(--brand-red); transform: rotate(70deg) translateY(-.25rem); }
+.brand-doodle-trail svg:nth-child(3) { color: var(--brand-yellow); transform: rotate(58deg) translateY(.25rem); }
+.storefront-title-accent { display: inline-block; position: relative; isolation: isolate; }
+.storefront-title-accent > .brand-pencil-stroke { position: absolute; bottom: -.3em; left: -.06em; width: 108%; height: .4em; stroke: var(--brand-yellow-light); stroke-width: 2; opacity: .85; z-index: -1; pointer-events: none; }
+.storefront-title-accent > .brand-pencil-stroke path:last-child { stroke: var(--brand-yellow); }
+@media (max-width: 40rem) {
+  .brand-doodle-divider { padding-inline: 0; gap: .75rem; }
+  .brand-doodle-divider > .brand-pencil-stroke { width: 4.5rem; height: 1.5rem; }
+  .brand-doodle-trail { gap: .5rem; }
+  .brand-doodle-trail svg { width: .9rem; height: 1.2rem; }
+}
+@media print { .brand-doodle-divider, .storefront-title-accent > .brand-pencil-stroke { display: none; } }

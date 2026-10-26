@@ -1,3 +1,4 @@
+import BrandFootprint from '../components/BrandFootprint';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -16,7 +17,7 @@ export default function FavoritesPage() {
     <p>Guarda lo que te gusta y vuelve cuando quieras. Esta lista se conserva en este navegador.</p>
     <p role="status">{saved.length} {saved.length === 1 ? 'producto guardado' : 'productos guardados'}</p>
     {loading && <p role="status">Actualizando el catálogo…</p>}
-    {saved.length ? <div className="products-grid">{saved.map(product => <ProductCard key={product.id} product={product} onQuickView={setPreview} />)}</div> : <div className="empty-results"><strong>Tu próxima idea te espera</strong><p>Usa el corazón de un producto para guardarlo aquí. Los artículos retirados del catálogo no se muestran.</p><Link to="/#productos" className="btn-primary">Explorar productos</Link></div>}
+    {saved.length ? <div className="products-grid">{saved.map(product => <ProductCard key={product.id} product={product} onQuickView={setPreview} />)}</div> : <div className="empty-results"><BrandFootprint className="brand-empty-mark" /><strong>Tu próxima idea te espera</strong><p>Usa el corazón de un producto para guardarlo aquí. Los artículos retirados del catálogo no se muestran.</p><Link to="/#productos" className="btn-primary">Explorar productos</Link></div>}
     <QuickViewModal product={preview} onClose={() => setPreview(null)} />
   </main></>;
 }

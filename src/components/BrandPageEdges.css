@@ -3,16 +3,16 @@
 @media (min-width: 90rem) {
   .storefront-home, .patagon-catalog { position: relative; }
   .brand-page-edges { display: block; position: absolute; inset: 0; pointer-events: none; user-select: none; overflow: hidden; }
-  .brand-edge-column { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 13rem; width: 3.5rem; }
+  .brand-edge-column { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 8rem; width: 3.5rem; }
   .brand-edge-column--left { left: 1rem; top: 8rem; }
   .brand-edge-column--right { right: 1rem; top: 19rem; }
   .storefront-home .brand-edge-column--left { top: 40rem; }
   .storefront-home .brand-edge-column--right { top: 51rem; }
-  .brand-edge-footprint { flex-shrink: 0; width: 1.75rem; height: 2.25rem; opacity: .18; transform: rotate(-22deg); }
+  .brand-edge-footprint { flex-shrink: 0; width: 1.75rem; height: 2.25rem; opacity: .28; transform: rotate(-22deg); }
   .brand-edge-footprint--teal { color: var(--brand-teal-dark); }
   .brand-edge-footprint--gold { color: var(--brand-yellow); transform: rotate(18deg); }
   .brand-edge-footprint--red { color: var(--brand-red); transform: rotate(24deg); }
-  .brand-edge-pencil { flex-shrink: 0; width: 3rem; height: 2.5rem; opacity: .35; stroke: var(--brand-yellow); stroke-width: 2; stroke-linecap: round; }
+  .brand-edge-pencil { flex-shrink: 0; width: 3rem; height: 2.5rem; opacity: .5; stroke: var(--brand-yellow); stroke-width: 2; stroke-linecap: round; }
   .brand-edge-pencil path:last-child { stroke: var(--brand-red); stroke-width: 1.5; }
   .brand-edge-column--right .brand-edge-pencil { transform: rotate(-12deg); }
 }

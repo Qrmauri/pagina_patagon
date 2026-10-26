@@ -1,5 +1,5 @@
 import { categoryLabel } from '../services/categoryLabels';
-import { Truck, ShieldCheck, ArrowUUpLeft, ChatCircle } from '@phosphor-icons/react';
+import { Truck, ShieldCheck, ArrowUUpLeft, ChatCircle, MagnifyingGlass, Coins, CaretDown, Gear, Lock } from '@phosphor-icons/react';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -10,15 +10,20 @@ import StorefrontHero from '../components/StorefrontHero';
 import StorefrontCategories from '../components/StorefrontCategories';
 import ShoppingNeeds from '../components/ShoppingNeeds';
 import BrandPageEdges from '../components/BrandPageEdges';
+import BrandFootprint from '../components/BrandFootprint';
+import BrandDoodles from '../components/BrandDoodles';
+import BrandText from '../components/BrandText';
 import FeaturedProducts from '../components/FeaturedProducts';
 import { useProducts } from '../hooks/useProducts';
 import ProductPairing from '../components/ProductPairing';
 import PatagonStory from '../components/PatagonStory';
 import StorefrontDetails from '../components/StorefrontDetails';
+import StorePhotoGallery from '../components/StorePhotoGallery';
 import { useAuth } from '../hooks/useAuth';
+import { DEMO_MODE } from '../services/checkout';
 
 export default function Home() {
-  const { products } = useProducts();
+  const { products, loading, backendAvailable } = useProducts();
   const { isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todas');
@@ -71,16 +76,17 @@ export default function Home() {
         <div className="container">
 
           <StorefrontCategories />
-          <ShoppingNeeds />
+          <BrandDoodles />
+          <FeaturedProducts products={products} />
 
           <section id="productos">
             <div className="section-heading products-heading">
               <div>
-                <span className="section-kicker">Selección Patagon</span>
-                <h2>Explora nuestro catálogo</h2>
+                <span className="section-kicker"><BrandFootprint className="brand-kicker-mark" /> Todas tus ideas</span>
+                <h2><BrandText text="Explora nuestro catálogo" /></h2>
               </div>
               <div className="product-search">
-                <span>⌕</span>
+                <span><MagnifyingGlass size={20} aria-hidden="true" /></span>
                 <input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
@@ -126,8 +132,8 @@ export default function Home() {
 <label className="availability-filter"><input type="checkbox" checked={availableOnly} onChange={e => setAvailableOnly(e.target.checked)} /> Solo productos disponibles</label>
             {/* Rango de Precios */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', margin: '0 0 24px' }}>
-              <span style={{ fontSize: 'var(--text-sm)', color: '#7a746e', fontWeight: 'var(--weight-semibold)' }}>
-                💰 Precio:
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontWeight: 'var(--weight-semibold)' }}>
+                <Coins size={18} weight="duotone" aria-hidden="true" /> Precio:
               </span>
               {[
                 { id: 'all', label: 'Todos los precios' },
@@ -160,19 +166,28 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="empty-results">
-                <strong>No encontramos productos</strong>
-                <span>Prueba con otra búsqueda o selecciona otra categoría.</span>
+              <div className="empty-results" role="status">
+                <BrandFootprint className="brand-empty-mark" />
+                <strong>{loading ? 'Cargando catálogo…' : !DEMO_MODE && !backendAvailable ? 'Catálogo temporalmente no disponible' : products.length === 0 ? 'Estamos preparando el catálogo' : 'No encontramos productos'}</strong>
+                <span>{!DEMO_MODE && (!backendAvailable || products.length === 0) ? 'Vuelve más tarde para consultar productos y disponibilidad confirmados.' : 'Prueba con otra búsqueda o selecciona otra categoría.'}</span>
               </div>
             )}
           </section>
 
-          <FeaturedProducts products={products} />
-          <ProductPairing products={products} />
+          <details className="home-discover-more">
+            <summary>Más formas de encontrar tu próxima idea <CaretDown size={22} aria-hidden="true" /></summary>
+            <ShoppingNeeds />
+            <ProductPairing products={products} />
+          </details>
+          <BrandDoodles />
           <PatagonStory />
+          <StorePhotoGallery />
 
           {/* Sección de Testimonios */}
-          <TestimonialsSection />
+          <details className="home-discover-more">
+            <summary>{DEMO_MODE ? 'Opiniones sobre esta demostración' : 'Opiniones de la comunidad'} <CaretDown size={22} aria-hidden="true" /></summary>
+            <TestimonialsSection />
+          </details>
           <StorefrontDetails />
 
           <section id="ayuda" className="demo-info">
@@ -210,10 +225,10 @@ export default function Home() {
           </div>
           <div>
             <h2>Empresa</h2>
-            <a href="#ayuda">Sobre el proyecto</a>
+            <a href="#nuestra-historia">Así es Patagon</a>
             <a href="#ayuda">Información</a>
             <Link to={isAdmin ? "/admin" : "/admin/login"} style={{ color: 'var(--text-on-dark)', fontSize: 'var(--text-sm)' }}>
-              {isAdmin ? "⚙️ Panel de Control" : "🔒 Acceso Administrativo"}
+              {isAdmin ? <><Gear size={18} aria-hidden="true" /> Panel de Control</> : <><Lock size={18} aria-hidden="true" /> Acceso Administrativo</>}
             </Link>
           </div>
         </div>

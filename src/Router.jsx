@@ -15,6 +15,7 @@ import OrderTrackingPage from './pages/OrderTrackingPage'
 import ProductDetailPage from './pages/ProductDetailPage'
 import StoreHelpPage from './pages/StoreHelpPage'
 import FavoritesPage from './pages/FavoritesPage'
+import SchoolListPage from './pages/SchoolListPage'
 import './App.css'
 import './pages/StorefrontHome.css'
 import './styles/typography.css'
@@ -39,6 +40,7 @@ export default function Router() {
                 <Route path="/seguimiento" element={<OrderTrackingPage />} />
                 <Route path="/ayuda" element={<StoreHelpPage />} />
                 <Route path="/favoritos" element={<FavoritesPage />} />
+                <Route path="/lista-escolar" element={<SchoolListPage />} />
 
                 {/* --- RUTAS DEDICADAS DE ADMINISTRACIÓN (BACKOFFICE) --- */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />

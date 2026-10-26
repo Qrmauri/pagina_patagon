@@ -1,3 +1,4 @@
+import BrandText from './BrandText';
 import { categoryLabel } from '../services/categoryLabels';
 import { Eye, Heart, ShoppingCart, Check, X } from '@phosphor-icons/react';
 import { useState } from 'react';
@@ -110,7 +111,7 @@ export default function ProductCard({
 
         <h3 className="card-title">
           <Link to={`/producto/${product.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {product.title}
+            <BrandText text={product.title} />
           </Link>
         </h3>
         <p className="card-desc">{product.description}</p>

@@ -1,3 +1,4 @@
+import BrandText from '../components/BrandText';
 import { categoryLabel } from '../services/categoryLabels';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -267,7 +268,7 @@ function ProductDetail() {
                   marginBottom: '12px',
                 }}
               >
-                {product.title}
+                <BrandText text={product.title} />
               </h1>
 
               {/* Valoración / Reviews */}
@@ -485,11 +486,11 @@ function ProductDetail() {
             </div>
           </div>
 
-          <section className="product-specs"><h2>Características del producto</h2>
+          <section className="product-specs"><h2><BrandText text="Características del producto" /></h2>
             {Object.entries(SPECIFICATION_LABELS).some(([key]) => product.specifications?.[key]) && <dl className="product-fact-list">{Object.entries(SPECIFICATION_LABELS).map(([key, label]) => product.specifications?.[key] ? <div key={key}><dt>{label}</dt><dd>{product.specifications[key]}</dd></div> : null)}</dl>}
             {product.characteristics ? <p style={{ whiteSpace: 'pre-line' }}>{product.characteristics}</p> : <p>Consulta los datos disponibles de la ficha. Si necesitas otra medida o información de compatibilidad, consulta antes de comprar.</p>}<Link to="/ayuda">Consultar condiciones y contacto →</Link></section>
           <StorePurchaseInfo />
-          <h2 className="product-information-heading">Información del producto</h2>
+          <h2 className="product-information-heading"><BrandText text="Información del producto" /></h2>
           {/* Pestañas de Información Adicional */}
           <div
             style={{

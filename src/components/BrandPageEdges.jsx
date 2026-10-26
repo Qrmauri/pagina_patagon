@@ -14,9 +14,19 @@ export default function BrandPageEdges() {
       <BrandFootprint className="brand-edge-footprint brand-edge-footprint--teal" />
       <PencilMarks />
       <BrandFootprint className="brand-edge-footprint brand-edge-footprint--gold" />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--red" />
+      <PencilMarks />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--teal" />
+      <PencilMarks />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--gold" />
     </div>
     <div className="brand-edge-column brand-edge-column--right">
       <PencilMarks />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--red" />
+      <PencilMarks />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--gold" />
+      <PencilMarks />
+      <BrandFootprint className="brand-edge-footprint brand-edge-footprint--teal" />
       <BrandFootprint className="brand-edge-footprint brand-edge-footprint--red" />
       <PencilMarks />
     </div>

@@ -1,0 +1,27 @@
+.hero-photo-carousel .hero-photo-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y pinch-zoom; }
+.hero-photo-carousel .hero-photo-track { display: flex; width: 100%; height: 100%; transition: transform 600ms cubic-bezier(.22,.61,.36,1); }
+.hero-photo-carousel .hero-photo-slide { position: relative; flex: 0 0 100%; width: 100%; height: 100%; min-width: 0; }
+.hero-photo-carousel .hero-photo-slide img { pointer-events: none; user-select: none; }
+.hero-photo-carousel .hero-photo-arrow, .hero-photo-carousel .hero-photo-play { display: grid; place-items: center; padding: 0; min-width: 2.75rem; width: 2.75rem; height: 2.75rem; min-height: 2.75rem; border: 1px solid #ffffff99; border-radius: 50%; color: white; background: #005f5a; cursor: pointer; }
+.hero-photo-carousel .hero-photo-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
+.hero-photo-arrow--previous { left: var(--space-4); }
+.hero-photo-arrow--next { right: var(--space-4); }
+.hero-photo-carousel .hero-photo-arrow:hover, .hero-photo-carousel .hero-photo-play:hover { background: var(--brand-red-dark); }
+.hero-photo-carousel .hero-photo-controls { position: absolute; left: var(--space-4); right: var(--space-4); bottom: var(--space-3); z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 3rem; padding: var(--space-1) var(--space-3); border-radius: var(--ui-radius-control); background: #063f3df0; color: white; }
+.hero-photo-status { font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-control); }
+.hero-photo-dots { display: flex; align-items: center; justify-content: center; }
+.hero-photo-dots button { display: grid; place-items: center; width: 2rem; height: 2.75rem; border: 0; background: transparent; padding: 0; cursor: pointer; }
+.hero-photo-dots button > span { display: block; width: .625rem; height: .625rem; border-radius: 50%; background: white; border: 1px solid white; }
+.hero-photo-dots button[aria-pressed="true"] > span { background: var(--brand-yellow); border-color: var(--brand-yellow); outline: 2px solid white; outline-offset: 3px; }
+.hero-photo-carousel .storefront-hero-seal { bottom: 5.5rem; pointer-events: none; }
+.storefront-hero-image.hero-photo-carousel figcaption { top: var(--space-3); bottom: auto; right: var(--space-4); z-index: 2; }
+.hero-photo-carousel button:focus-visible, .hero-photo-carousel a:focus-visible { outline: 3px solid var(--brand-yellow-light); outline-offset: 2px; }
+@media (max-width: 64rem) { .hero-photo-status > span { display: none; } }
+@media (max-width: 40rem) {
+  .hero-photo-carousel .storefront-hero-seal { display: none; }
+  .hero-photo-carousel .hero-photo-controls { left: var(--space-3); right: var(--space-3); padding-inline: var(--space-2); }
+  .hero-photo-dots button { width: 1.75rem; }
+  .hero-photo-arrow--previous { left: var(--space-3); }
+  .hero-photo-arrow--next { right: var(--space-3); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-photo-carousel .hero-photo-track { transition: none; } }

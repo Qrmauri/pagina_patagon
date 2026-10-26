@@ -6,7 +6,7 @@ import CartDrawer from './CartDrawer';
 import AnnouncementBar from './AnnouncementBar';
 import { useProducts } from '../hooks/useProducts';
 import { formatPrice } from '../services/productsData';
-import { PencilSimple, Lightning, Question, MagnifyingGlass, List, Heart } from '@phosphor-icons/react';
+import { PencilSimple, Lightning, Question, MagnifyingGlass, List, Heart, PuzzlePiece } from '@phosphor-icons/react';
 import { useFavorites } from '../hooks/useFavorites';
 
 export default function Navbar() {
@@ -107,8 +107,8 @@ export default function Navbar() {
                   width: '100%',
                   padding: '9px 12px 9px 36px',
                   borderRadius: '999px',
-                  border: '1px solid #dcd3c8',
-                  background: '#fdfbf7',
+                  border: '1px solid var(--surface-border)',
+                  background: 'var(--brand-teal-light)',
                   fontSize: 'var(--text-sm)',
                   outline: 'none',
                   transition: 'all 0.2s',
@@ -153,7 +153,7 @@ export default function Navbar() {
                   animation: 'fadeIn 0.15s ease-out',
                 }}
               >
-                <div style={{ padding: '8px 14px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: '#64748b', textTransform: 'uppercase' }}>
+                <div style={{ padding: '8px 14px', background: 'var(--brand-teal-light)', borderBottom: '1px solid var(--surface-border)', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                   {searchResults.length > 0 ? `Sugerencias (${searchResults.length})` : 'Sin coincidencias'}
                 </div>
 
@@ -172,7 +172,7 @@ export default function Navbar() {
                             alignItems: 'center',
                             gap: '12px',
                             padding: '10px 14px',
-                            borderBottom: '1px solid #f1f5f9',
+                            borderBottom: '1px solid var(--brand-teal-light)',
                             cursor: 'pointer',
                             transition: 'background 0.15s',
                           }}
@@ -187,25 +187,25 @@ export default function Navbar() {
                               height: '42px',
                               borderRadius: '8px',
                               objectFit: 'cover',
-                              background: '#f1f5f9',
+                              background: 'var(--brand-teal-light)',
                               flexShrink: 0,
                             }}
                           />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {item.title}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: '#2563eb' }}>
+                              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', color: 'var(--brand-red-dark)' }}>
                                 {formatPrice(item.price)}
                               </span>
-                              <span style={{ fontSize: 'var(--text-sm)', color: '#64748b', background: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize' }}>
+                              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', background: 'var(--brand-teal-light)', padding: '1px 6px', borderRadius: '4px', textTransform: 'capitalize' }}>
                                 {categoryLabel(item.category)}
                               </span>
                             </div>
                           </div>
                           {isOut ? (
-                            <span style={{ fontSize: 'var(--text-sm)', color: '#ef4444', fontWeight: 'var(--weight-bold)' }}>Agotado</span>
+                            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--brand-red-dark)', fontWeight: 'var(--weight-bold)' }}>Agotado</span>
                           ) : (
                             <span style={{ fontSize: 'var(--text-sm)', color: 'var(--brand-teal-dark)' }}>En stock</span>
                           )}
@@ -214,7 +214,7 @@ export default function Navbar() {
                     })}
                   </div>
                 ) : (
-                  <div style={{ padding: '24px 16px', textAlign: 'center', color: '#64748b', fontSize: 'var(--text-sm)' }}>
+                  <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
                     No encontramos ningún producto para "<strong>{searchQuery}</strong>".
                   </div>
                 )}
@@ -235,9 +235,9 @@ export default function Navbar() {
           <ul id="store-navigation" className={`nav-links ${menuOpen ? 'is-open' : ''}`}>
             <li className="nav-home-link"><Link to="/" onClick={closeMenu}>Inicio</Link></li>
             <li><NavLink to="/libreria" onClick={closeMenu}><PencilSimple className="nav-books" size={22} weight="duotone" aria-hidden="true" /> Librería</NavLink></li>
-            <li><NavLink to="/juguetes" onClick={closeMenu}><img className="nav-toy-image" src="/products/illustrations/peluche-clasico.webp" width="24" height="24" alt="" /> Juguetes</NavLink></li>
-            <li><NavLink to="/electronica" onClick={closeMenu}><Lightning className="nav-electronics" size={22} weight="fill" aria-hidden="true" /> Electrónica</NavLink></li>
-            <li><NavLink to="/ayuda" onClick={closeMenu}><Question className="nav-help" size={22} weight="fill" aria-hidden="true" /> Ayuda</NavLink></li>
+            <li><NavLink to="/juguetes" onClick={closeMenu}><PuzzlePiece className="nav-toys" size={22} weight="duotone" aria-hidden="true" /> Juguetes</NavLink></li>
+            <li><NavLink to="/electronica" onClick={closeMenu}><Lightning className="nav-electronics" size={22} weight="duotone" aria-hidden="true" /> Electrónica</NavLink></li>
+            <li><NavLink to="/ayuda" onClick={closeMenu}><Question className="nav-help" size={22} weight="duotone" aria-hidden="true" /> Ayuda</NavLink></li>
             <li className="nav-tracking-link"><Link to="/seguimiento" onClick={closeMenu}>Rastrear pedido</Link></li>
           </ul>
           <Link to="/favoritos" className="navbar-favorites" onClick={closeMenu} aria-label={`Mis favoritos, ${favoriteCount} guardados`} title="Mis favoritos"><Heart size={24} weight={favoriteCount ? 'fill' : 'regular'} aria-hidden="true" /><span>{favoriteCount}</span></Link>

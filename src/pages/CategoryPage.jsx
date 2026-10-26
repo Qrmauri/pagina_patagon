@@ -1,6 +1,7 @@
+import BrandText from '../components/BrandText'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { PencilSimple } from '@phosphor-icons/react'
+import { PencilSimple, PuzzlePiece, Lightning } from '@phosphor-icons/react'
 import BrandFootprint from '../components/BrandFootprint'
 import BrandPageEdges from '../components/BrandPageEdges'
 import './CategoryPage.css'
@@ -18,7 +19,7 @@ const CATEGORY_PRESENTATION = {
   electrónica: { image: 'audifonos-premium', line: 'Conecta con lo que disfrutas.', description: 'Tecnología para tus juegos, tu música y los momentos de cada día. Explora nuestra selección.' },
 };
 
-export default function CategoryPage({ title, emoji, category, description, children }) {
+export default function CategoryPage({ title, category, description, children }) {
   const { products } = useProducts();
   const [searchParams] = useSearchParams();
   const activeNeed = SHOPPING_NEEDS.find(need => need.id === searchParams.get('necesidad') && need.category === category);
@@ -31,6 +32,7 @@ export default function CategoryPage({ title, emoji, category, description, chil
 
   const filteredProducts = filterCatalog(filterByNeed(categoryProducts, activeNeed?.id), filters);
   const presentation = CATEGORY_PRESENTATION[category];
+  const CategoryIcon = { libros: PencilSimple, juguetes: PuzzlePiece, electrónica: Lightning }[category] || PencilSimple;
 
   return (
     <>
@@ -47,10 +49,8 @@ export default function CategoryPage({ title, emoji, category, description, chil
             <div className="category-hero-copy">
             <p className="category-eyebrow">El mundo de Patagon</p>
             <h1 id="category-title">
-              <span className="category-heading-icon" aria-hidden="true">{emoji}</span>{' '}
-              <span>{title.split(/([^\u0020-\u007e]+)/u).map((part, index) => (
-                <span key={index} className={/[^\u0020-\u007e]/u.test(part) ? 'category-heading-fallback' : undefined}>{part}</span>
-              ))}</span>
+              <span className="category-heading-icon" aria-hidden="true"><CategoryIcon size={36} weight="duotone" /></span>{' '}
+              <BrandText text={title} />
             </h1>
             <p className="category-intro">
               {description || presentation?.description || `Explora nuestras selecciones de ${title.toLowerCase()}`}
@@ -78,7 +78,7 @@ export default function CategoryPage({ title, emoji, category, description, chil
 
           <section id="productos" className="category-products">
             <p className="category-products-kicker">{presentation?.line || 'Descubre nuestra selección.'}</p>
-            <h2 className="catalog-list-title">Productos de {title.toLowerCase()}</h2>
+            <h2 className="catalog-list-title"><BrandText text={`Productos de ${title.toLowerCase()}`} /></h2>
             <div className="products-grid">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
@@ -90,6 +90,7 @@ export default function CategoryPage({ title, emoji, category, description, chil
                 ))
               ) : (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '18px' }}>
+                  <BrandFootprint className="brand-empty-mark" />
                   <p style={{ fontSize: 'var(--text-lg)', color: '#7a746e' }}>
                     No hay productos que coincidan con estos filtros en <strong>{title}</strong>.
                   </p>

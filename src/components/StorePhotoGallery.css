@@ -1,0 +1,39 @@
+.storefront-home .store-photos { margin-block: var(--space-10); padding-block: var(--space-6); border-top: 1px solid var(--surface-border); scroll-margin-top: var(--anchor-offset); }
+.store-photos-heading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); margin-bottom: var(--space-6); }
+.store-photos-heading h2 { font-size: var(--text-section-title); max-width: 28ch; margin-top: var(--space-2); }
+.store-photos-heading > p { color: var(--text-secondary); max-width: 36ch; margin: 0; }
+.store-photos-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
+.store-photo { margin: 0; min-width: 0; background: white; border: 1px solid var(--surface-border); border-radius: var(--ui-radius-surface); overflow: hidden; }
+.store-photo--main { grid-column: span 2; grid-row: span 2; display: flex; flex-direction: column; }
+.store-photo > a { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 3; background: var(--brand-teal-light); }
+.store-photo--main > a { aspect-ratio: auto; flex: 1; min-height: 20rem; }
+.store-photo > a:focus-visible { outline: 3px solid var(--brand-yellow); outline-offset: -5px; }
+.store-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.store-photo--fachada img { object-position: 50% 53%; }
+.store-photo--libreria img, .store-photo--accesorios img { object-position: 50% 45%; }
+.store-photo-expand { position: absolute; right: var(--space-3); bottom: var(--space-3); display: grid; place-items: center; width: 2.75rem; height: 2.75rem; color: white; background: var(--brand-teal-dark); border: 1px solid white; border-radius: 50%; transition: background-color var(--ui-transition); }
+.store-photo a:hover .store-photo-expand { background: var(--brand-red-dark); }
+.store-photo figcaption { padding: var(--space-4); border-top: 3px solid var(--brand-teal); }
+.store-photo--fachada figcaption, .store-photo--accesorios figcaption { border-color: var(--brand-yellow); }
+.store-photo--instrumentos figcaption { border-color: var(--brand-red); }
+.store-photo figcaption h3 { font-size: var(--text-base); line-height: var(--leading-heading); margin: 0 0 var(--space-2); }
+.store-photo figcaption p { font-size: var(--text-sm); line-height: var(--leading-body); color: var(--text-secondary); margin: 0; }
+.store-photos-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-5); }
+.store-photos-note p { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); max-width: 65ch; }
+.store-photos-note a { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; color: var(--brand-teal-dark); font-weight: var(--weight-bold); text-underline-offset: .2em; }
+.storefront-home .storefront-hero-image--real img { object-position: 50% 54%; }
+.storefront-hero-image--real figcaption a { display: inline-flex; align-items: center; min-height: 2.75rem; color: white; text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 64rem) {
+  .store-photos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .store-photo--main { grid-column: span 2; grid-row: auto; }
+  .store-photo--main > a { aspect-ratio: 16 / 9; min-height: 0; flex: auto; }
+}
+@media (max-width: 40rem) {
+  .store-photos-grid { gap: var(--space-3); }
+  .store-photo figcaption { padding: var(--space-3); }
+  .store-photo figcaption p { display: none; }
+  .store-photo figcaption h3 { margin: 0; overflow-wrap: anywhere; }
+  .store-photo > a { aspect-ratio: 1; }
+  .store-photo--main > a { aspect-ratio: 4 / 3; }
+  .store-photos-heading { gap: var(--space-3); }
+}

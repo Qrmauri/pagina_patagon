@@ -1,0 +1,50 @@
+.school-list-page { padding-top: 24px; padding-bottom: 48px; }
+.school-breadcrumb { display: flex; flex-wrap: wrap; gap: 12px; font-size: var(--text-sm); margin-bottom: 24px; }
+.school-list-page a { color: var(--brand-teal-dark); text-underline-offset: 4px; }
+.school-list-header { display: flex; align-items: center; justify-content: space-between; gap: 32px; background: #fffaf0; border: 1px solid #e7d7a8; border-top: 4px solid var(--brand-yellow); border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+.school-list-header h1 { margin: 8px 0 16px; font-size: var(--text-page-title); }
+.school-list-header p { max-width: 650px; margin-bottom: 12px; }
+.school-list-header > svg { flex-shrink: 0; color: var(--brand-teal-dark); }
+.school-list-note { display: block; font-size: var(--text-sm); color: var(--text-secondary); }
+.school-list-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.school-list-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.school-list-page h2 { font-size: var(--text-lg); line-height: var(--leading-heading); color: var(--brand-teal-dark); }
+.school-list-toolbar h2 { margin: 0 auto 0 0; }
+.school-list-toolbar button { border: 1px solid #cce4e1; border-radius: 8px; padding: 8px 12px; min-height: 44px; background: #fff; color: var(--brand-teal-dark); font: inherit; font-size: var(--text-sm); cursor: pointer; }
+.school-products { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.school-product { display: grid; grid-template-columns: 24px 64px minmax(0, 1fr) 80px 90px; gap: 16px; align-items: center; border: 1px solid #d5e9e3; border-radius: 12px; padding: 20px 16px; background: #fff; }
+.school-product.is-selected { border-color: var(--brand-teal-dark); background: #f0f8f5; }
+.school-product > input { width: 22px; height: 22px; accent-color: var(--brand-teal-dark); cursor: pointer; }
+.school-product > img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #fff; }
+.school-product-copy { display: grid; gap: 4px; overflow-wrap: anywhere; }
+.school-product-copy > a { font-weight: var(--weight-bold); }
+.school-product-copy > span, .school-product-copy > small, .school-quantity { font-size: var(--text-sm); }
+.school-quantity { display: grid; gap: 4px; }
+.school-quantity input { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #92b6aa; border-radius: 6px; font: inherit; background: #fff; color: var(--text-primary); }
+.school-line-total { text-align: right; color: var(--brand-teal-dark); }
+.school-summary { border: 1px solid #d5e9e3; border-radius: 12px; background: #f0f8f5; padding: 24px; }
+.school-summary-icon { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: var(--brand-teal-dark); background: #fff; margin-bottom: 16px; }
+.school-summary h2 { margin: 0 0 16px; }
+.school-subtotal { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 20px; border-top: 1px dashed #92b6aa; }
+.school-subtotal strong { font-size: var(--text-xl); color: var(--brand-teal-dark); }
+.school-summary-note, .school-summary > small { font-size: var(--text-sm); line-height: var(--leading-body); }
+.school-summary .btn-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin: 20px 0 12px; white-space: normal; }
+.school-summary > a { display: inline-flex; align-items: center; min-height: 44px; }
+.school-summary > small { display: block; margin-top: 16px; }
+.school-list-page button:disabled, .school-list-page input:disabled { opacity: .55; cursor: not-allowed; }
+.school-list-page :is(a, button, input):focus-visible { outline: 2px solid var(--brand-teal-dark); outline-offset: 4px; }
+.school-back { display: inline-flex; align-items: center; min-height: 44px; margin-top: 32px; }
+.school-empty { padding: 32px; border: 1px dashed #92b6aa; border-radius: 12px; }
+.school-empty > a { display: inline-flex; padding: 12px; }
+.school-list-entry { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px 20px; border-radius: 8px; background: var(--brand-teal-dark); color: #fff; text-decoration: none; font-weight: var(--weight-bold); }
+.school-list-entry:hover { background: #005951; }
+@media (max-width: 1100px) { .school-list-layout { grid-template-columns: minmax(0, 1fr); } .school-summary { max-width: 100%; } }
+@media (max-width: 600px) {
+  .school-list-header { padding: 24px; gap: 12px; }
+  .school-list-header > svg { display: none; }
+  .school-product { grid-template-columns: 24px 48px minmax(0, 1fr); gap: 12px; padding: 16px; }
+  .school-product > img { width: 48px; height: 48px; }
+  .school-quantity { grid-column: 2; width: 64px; }
+  .school-line-total { grid-column: 3; }
+  .school-list-toolbar h2 { width: 100%; }
+}
