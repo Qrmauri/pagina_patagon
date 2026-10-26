@@ -35,5 +35,11 @@ patagon-backend/db.sqlite3
 patagon-backend/media/
 .env
 .env.local
+.env.*
+!.env*.example
 .django-secret-key
+patagon-backend/staticfiles/
 
+
+# Local design exports and browser QA artifacts
+/output/

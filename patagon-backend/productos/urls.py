@@ -3,10 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from catalog.session_views import session_status, session_login, session_logout
 from catalog.views import ProductViewSet, OrderViewSet, TestimonialViewSet, CouponViewSet
 from catalog.views import StoreSettingsView
 
@@ -81,7 +78,7 @@ def root_view(request):
         </div>
 
         <div class="footer-note">
-            Patagon Store v2.0 • Django REST Framework con Autenticación JWT & Control de Inventario
+            Patagon Store v2.0 • Django REST Framework con sesiones seguras & Control de Inventario
         </div>
     </div>
 </body>
@@ -92,8 +89,9 @@ def root_view(request):
 urlpatterns = [
     path('', root_view, name='backend_root'),
     path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/session/', session_status, name='session-status'),
+    path('api/auth/login/', session_login, name='session-login'),
+    path('api/auth/logout/', session_logout, name='session-logout'),
     path('api/store-settings/', StoreSettingsView.as_view(), name='store-settings'),
     path('api/', include(router.urls)),
 ]

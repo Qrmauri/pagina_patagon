@@ -13,138 +13,115 @@ test('si Django continúa desconectado se impide guardar y se explica cómo reco
   await assert.rejects(ensureCatalogConnection(false, async () => null), /No pudimos conectar/);
 });
 
-test('un token vencido no hace que el catálogo público parezca un backend apagado', async t => {
-  const calls = [];
-  t.mock.method(globalThis, 'fetch', async (_url, options) => {
-    calls.push(options.headers);
-    return options.headers.Authorization
-      ? new Response('{}', { status: 401 })
-      : Response.json([{ id: 1, title: 'Cuaderno' }]);
+function mockSession(t, handler) {
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    if (url.endsWith('/auth/session/')) return Response.json({ csrfToken: 'csrf-fixture', isAdmin: true });
+    return handler(url, options);
   });
-  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-  Object.defineProperty(globalThis, 'localStorage', { value: { getItem: () => 'expired-test-token' }, configurable: true });
-  t.after(() => previousStorage ? Object.defineProperty(globalThis, 'localStorage', previousStorage) : delete globalThis.localStorage);
-  assert.deepEqual(await api.getProducts(), [{ id: 1, title: 'Cuaderno' }]);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].Authorization, undefined);
+}
+
+test('catálogo público usa cookies del mismo origen sin tokens del almacenamiento', async t => {
+  mockSession(t, async (_url, options) => {
+    assert.equal(options.credentials, 'same-origin');
+    assert.equal(options.headers.Authorization, undefined);
+    return Response.json([{ id: 1 }]);
+  });
+  assert.deepEqual(await api.getProducts(), [{ id: 1 }]);
 });
 
-test('crear producto envía el enlace de imagen como JSON y conserva la autorización', async t => {
-  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-  Object.defineProperty(globalThis, 'localStorage', { value: { getItem: () => 'test-token' }, configurable: true });
-  t.after(() => previousStorage ? Object.defineProperty(globalThis, 'localStorage', previousStorage) : delete globalThis.localStorage);
-  const payload = { title: 'Cuaderno', price: 1990, category: 'libros', stock: 4, image: 'https://example.com/cuaderno.jpg' };
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
+test('crear producto conserva JSON y exige CSRF con sesión', async t => {
+  const payload = { title: 'Cuaderno', image: 'https://example.com/cuaderno.jpg' };
+  mockSession(t, async (url, options) => {
     assert.ok(url.endsWith('/products/'));
     assert.equal(options.method, 'POST');
-    assert.equal(options.headers.Authorization, 'Bearer test-token');
-    assert.equal(options.headers['Content-Type'], 'application/json');
+    assert.equal(options.headers['X-CSRFToken'], 'csrf-fixture');
+    assert.equal(options.credentials, 'same-origin');
+    assert.equal(options.headers.Authorization, undefined);
     assert.deepEqual(JSON.parse(options.body), payload);
-    return Response.json({ id: 42, ...payload }, { status: 201 });
+    return Response.json({ id: 42, ...payload });
   });
   assert.equal((await api.createProduct(payload)).id, 42);
 });
 
-test('una sesión vencida al guardar se distingue de un backend desconectado', async t => {
-  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-  Object.defineProperty(globalThis, 'localStorage', { value: { getItem: () => 'expired-test-token' }, configurable: true });
-  t.after(() => previousStorage ? Object.defineProperty(globalThis, 'localStorage', previousStorage) : delete globalThis.localStorage);
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ detail: 'Invalid token' }, { status: 401 }));
-  await assert.rejects(api.createProduct({ title: 'Cuaderno' }), /sesión de administración venció/);
-});
-
-function sessionStorage(t) {
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-  const values = new Map([['patagon_access_token', 'old-access'], ['patagon_refresh_token', 'valid-refresh']]);
-  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
-    getItem: key => values.get(key) ?? null,
-    setItem: (key, value) => values.set(key, value),
-    removeItem: key => values.delete(key),
-  } });
-  t.after(() => previous ? Object.defineProperty(globalThis, 'localStorage', previous) : delete globalThis.localStorage);
-  return values;
-}
-
-test('renueva el acceso y reintenta el mismo producto sin perder su imagen', async t => {
-  const values = sessionStorage(t);
-  const payload = { title: 'Cuaderno', image: 'https://example.com/foto.jpg' };
+test('una sesión vencida no reintenta escrituras ni llama renovación JWT', async t => {
   let writes = 0;
-  let refreshes = 0;
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
-    if (url.endsWith('/token/refresh/')) {
-      refreshes++;
-      assert.deepEqual(JSON.parse(options.body), { refresh: 'valid-refresh' });
-      return Response.json({ access: 'new-access' });
-    }
+  mockSession(t, async (url) => {
+    assert.ok(!url.includes('/token/'));
     writes++;
-    assert.deepEqual(JSON.parse(options.body), payload);
-    return options.headers.Authorization === 'Bearer new-access'
-      ? Response.json({ id: 80, ...payload }, { status: 201 })
-      : Response.json({}, { status: 401 });
+    return Response.json({ detail: 'Vuelve a iniciar sesión.' }, { status: 403 });
   });
-  assert.equal((await api.createProduct(payload)).id, 80);
-  assert.equal(writes, 2);
-  assert.equal(refreshes, 1);
-  assert.equal(values.get('patagon_access_token'), 'new-access');
+  await assert.rejects(api.createProduct({ title: 'Cuaderno' }), /iniciar sesión/);
+  assert.equal(writes, 1);
 });
 
-test('no insiste ni guarda si también venció la renovación', async t => {
-  sessionStorage(t);
-  const paths = [];
-  t.mock.method(globalThis, 'fetch', async url => {
-    paths.push(url);
-    return Response.json({}, { status: 401 });
-  });
-  await assert.rejects(api.createProduct({ title: 'Cuaderno' }), /sesión de administración venció/);
-  assert.equal(paths.length, 2);
-  assert.ok(paths[1].endsWith('/token/refresh/'));
+test('permisos insuficientes no reintentan escrituras', async t => {
+  let writes = 0;
+  mockSession(t, async () => { writes++; return Response.json({ detail: 'Sin permisos' }, { status: 403 }); });
+  await assert.rejects(api.createProduct({}), /Sin permisos/);
+  assert.equal(writes, 1);
 });
 
-test('dos solicitudes simultáneas comparten una renovación', async t => {
-  sessionStorage(t);
-  let refreshes = 0;
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
-    if (url.endsWith('/token/refresh/')) { refreshes++; return Response.json({ access: 'new-access' }); }
-    return options.headers.Authorization === 'Bearer new-access' ? Response.json({ id: 1 }) : Response.json({}, { status: 401 });
-  });
-  await Promise.all([api.getProduct(1), api.getProduct(2)]);
-  assert.equal(refreshes, 1);
-});
-
-test('permisos insuficientes no renuevan ni reintentan la escritura', async t => {
-  sessionStorage(t);
-  let calls = 0;
-  t.mock.method(globalThis, 'fetch', async () => { calls++; return Response.json({ detail: 'Sin permisos' }, { status: 403 }); });
-  await assert.rejects(api.createProduct({ title: 'Cuaderno' }), /Sin permisos/);
-  assert.equal(calls, 1);
-});
-
-test('renovar conserva el archivo multipart y deja que el navegador ponga su Content-Type', async t => {
-  sessionStorage(t);
+test('sesión conserva archivo multipart sin imponer Content-Type', async t => {
   const body = new FormData();
-  body.append('title', 'Cuaderno');
-  body.append('image_file', new Blob(['test-image'], { type: 'image/png' }), 'test.png');
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
-    if (url.endsWith('/token/refresh/')) return Response.json({ access: 'new-access' });
+  body.append('image_file', new Blob(['fixture'], { type: 'image/png' }), 'fixture.png');
+  mockSession(t, async (_url, options) => {
     assert.equal(options.body, body);
     assert.equal(options.headers['Content-Type'], undefined);
-    return options.headers.Authorization === 'Bearer new-access' ? Response.json({ id: 1 }) : Response.json({}, { status: 401 });
+    assert.equal(options.headers['X-CSRFToken'], 'csrf-fixture');
+    return Response.json({ id: 1 });
   });
   assert.equal((await api.updateProduct(1, body)).id, 1);
 });
 
-test('cerrar sesión durante la renovación evita restaurarla y reenviar el producto', async t => {
-  const values = sessionStorage(t);
-  let writes = 0;
-  t.mock.method(globalThis, 'fetch', async (url) => {
-    if (url.endsWith('/token/refresh/')) {
-      api.logout();
-      return Response.json({ access: 'new-access' });
-    }
-    writes++;
-    return Response.json({}, { status: 401 });
+test('login y logout usan servidor sin guardar credenciales', async t => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const removed = [];
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+    removeItem: key => removed.push(key),
+    setItem: () => assert.fail('No guardar credenciales'),
+    getItem: () => assert.fail('No leer tokens'),
+  } });
+  t.after(() => previous ? Object.defineProperty(globalThis, 'localStorage', previous) : delete globalThis.localStorage);
+  const paths = [];
+  mockSession(t, async (url, options) => {
+    paths.push(url);
+    assert.equal(options.method, 'POST');
+    assert.equal(options.headers['X-CSRFToken'], 'csrf-fixture');
+    return Response.json({ isAdmin: url.endsWith('/login/') });
   });
-  await assert.rejects(api.createProduct({ title: 'Cuaderno' }), /sesión de administración venció/);
-  assert.equal(writes, 1);
-  assert.equal(values.has('patagon_access_token'), false);
+  await api.login('fixture', 'password');
+  await api.logout();
+  assert.ok(paths[0].endsWith('/auth/login/'));
+  assert.ok(paths[1].endsWith('/auth/logout/'));
+  assert.ok(removed.includes('patagon_refresh_token'));
+});
+
+test('logout fallido no informa un cierre de sesión que el servidor no confirmó', async t => {
+  mockSession(t, async () => Response.json({}, { status: 500 }));
+  await assert.rejects(api.logout(), /cerrar la sesión en el servidor/);
+});
+
+test('seguimiento envía solo el código en POST sin correo ni secretos en URL', async t => {
+  mockSession(t, async (url, options) => {
+    assert.ok(url.endsWith('/orders/track/'));
+    assert.equal(options.method, 'POST');
+    assert.deepEqual(JSON.parse(options.body), { token: 'private-code' });
+    assert.equal(options.cache, 'no-store');
+    return Response.json({ id: 1, status: 'pending' });
+  });
+  assert.equal((await api.trackOrder('private-code')).status, 'pending');
+});
+
+test('listado de reseñas consume una página acotada y moderación usa CSRF', async t => {
+  mockSession(t, async (url, options) => {
+    if (options.method === 'PATCH') {
+      assert.deepEqual(JSON.parse(options.body), { approved: true });
+      assert.equal(options.headers['X-CSRFToken'], 'csrf-fixture');
+      return Response.json({ id: 1, approved: true });
+    }
+    assert.ok(url.endsWith('?page=2'));
+    return Response.json({ results: [{ id: 1 }], next: null, previous: 'previous' });
+  });
+  assert.deepEqual(await api.getTestimonials(2), [{ id: 1 }]);
+  assert.equal((await api.approveTestimonial(1)).approved, true);
 });

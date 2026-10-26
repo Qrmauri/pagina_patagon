@@ -1,8 +1,16 @@
 # 🛒 Patagon Store — Full Stack E-Commerce
 
-[![React](https://img.shields.io/badge/Frontend-React_18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Bundler-Vite_5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Django](https://img.shields.io/badge/Backend-Django_6.1-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+## Estado de entrega
+
+La versión actual sigue siendo una demostración. El catálogo definitivo está pendiente de datos y aprobación del cliente; no se han inventado precios ni stock. Las protecciones de producción están preparadas, pero requieren dominio, HTTPS y configuración del alojamiento. Webpay real sigue pendiente.
+
+- Datos a solicitar: [Catálogo para el cliente](docs/catalogo-para-el-cliente.md).
+- Configuración, controles y límites: [Seguridad de producción](docs/seguridad-produccion.md).
+- Revisión técnica del catálogo: `python manage.py audit_catalog` desde `patagon-backend`.
+
+[![React](https://img.shields.io/badge/Frontend-React_19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Bundler-Vite_8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Django](https://img.shields.io/badge/Backend-Django_6.1.1-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/API-Django_REST_Framework-red?logo=django)](https://www.django-rest-framework.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -37,12 +45,12 @@ Diseñada con una arquitectura desacoplada y modo híbrido resiliente (sincroniz
 
 ```text
 Patagon Store
-├── ⚛️ Frontend (React 18 + Vite) ─── Puerto :5173
+├── ⚛️ Frontend (React 19 + Vite) ─── Puerto :5173
 │   ├── React Router DOM (Navegación SPA)
 │   ├── Context API (Auth, Products, Cart, Toast)
 │   └── API Client (Fetch con fallback offline)
 │
-├── 🐍 Backend (Django 6.1 + DRF) ─── Puerto :8000
+├── 🐍 Backend (Django 6.1.1 + DRF) ─── Puerto :8000
 │   ├── API REST (/api/products/, /api/orders/, /api/testimonials/)
 │   ├── Media Engine (Manejo de archivos JPEG/PNG con Pillow)
 │   └── CORS Headers (Comunicación cross-origin habilitada)
@@ -57,8 +65,8 @@ Patagon Store
 
 | Capa | Tecnologías |
 |---|---|
-| **Frontend** | React 18, Vite, React Router DOM v7, CSS Moderno (Variables, Flexbox, Grid), Context API |
-| **Backend** | Python 3.11+, Django 6.1, Django REST Framework, Django Filter, Django CORS Headers, Pillow |
+| **Frontend** | React 19, Vite, React Router DOM v7, CSS Moderno (Variables, Flexbox, Grid), Context API |
+| **Backend** | Python 3.11+, Django 6.1.1, Django REST Framework, Django Filter, Django CORS Headers, Pillow |
 | **Base de Datos** | SQLite (Persistencia local) |
 | **Herramientas** | ESLint, Git, PowerShell scripts para automatización |
 
@@ -67,7 +75,7 @@ Patagon Store
 ## 🚀 Instalación y Ejecución Local
 
 ### Prerrequisitos
-- [Node.js](https://nodejs.org/) (versión 18 o superior)
+- [Node.js](https://nodejs.org/) (20.19.x o 22.12 y posteriores, según Vite)
 - [Python](https://www.python.org/) (versión 3.11 o superior)
 - [Git](https://git-scm.com/)
 
@@ -214,3 +222,12 @@ pagina_8/
 
 Este proyecto está bajo la Licencia MIT. Siéntete libre de utilizarlo, modificarlo y compartirlo como parte de tu portafolio.
 
+
+
+## Seguridad: cambios del 21 de octubre de 2026
+
+La administración utiliza sesiones Django con cookie HttpOnly y CSRF; los JWT anteriores ya no autentican. Configura `VITE_API_BASE_URL=/api`: frontend y API comparten origen mediante el proxy Vite o Nginx. Para desarrollo abre Vite en localhost:5173 o 127.0.0.1:5173; si cambias puerto, añade su origen a `DJANGO_CSRF_TRUSTED_ORIGINS`. No es necesario abrir CORS.
+
+Los pedidos pendientes no reservan stock: las existencias se revalidan y descuentan al confirmar la transferencia. El seguimiento utiliza un código privado de 30 días y muestra solo el estado. Las reseñas requieren aprobación, tienen un máximo de 2.000 caracteres y se sirven en páginas de 20.
+
+Aplica `python manage.py migrate` antes de arrancar la versión nueva en otro entorno. Se necesita copia de seguridad previa. La migración local ya fue aplicada conservando pedidos y stock. Consulta [las instrucciones de migración y verificación](docs/correcciones-seguridad-2026-10-21.md).

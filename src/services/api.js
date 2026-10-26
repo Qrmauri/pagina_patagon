@@ -1,61 +1,38 @@
 import { DEMO_MODE, DEMO_COUPONS } from './checkout.js';
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '/api';
+// Las sesiones se usan desde el mismo origen (proxy de Vite o Nginx).
+if (!API_BASE_URL.startsWith('/') || API_BASE_URL.startsWith('//')) {
+  throw new Error('VITE_API_BASE_URL debe ser una ruta del mismo origen, por ejemplo /api.');
+}
 
-/**
- * Obtener encabezado Authorization con el token JWT guardado.
- */
-const getAuthHeader = () => {
-  const token = localStorage.getItem('patagon_access_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-let refreshingSession = null;
-
-async function refreshSession() {
-  const refresh = localStorage.getItem('patagon_refresh_token');
-  if (!refresh) return false;
-  if (!refreshingSession) {
-    refreshingSession = (async () => {
-      const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh }),
-      });
-      if (!response.ok) return false;
-      const data = await response.json();
-      // No restablecer una sesión que se cerró o cambió mientras esperaba.
-      if (!data.access || localStorage.getItem('patagon_refresh_token') !== refresh) return false;
-      localStorage.setItem('patagon_access_token', data.access);
-      if (data.refresh) localStorage.setItem('patagon_refresh_token', data.refresh);
-      return true;
-    })().finally(() => { refreshingSession = null; });
+export function clearLegacyCredentials() {
+  for (const key of ['patagon_access_token', 'patagon_refresh_token', 'patagon_admin_auth']) {
+    try { globalThis.localStorage?.removeItem(key); } catch { /* Almacenamiento opcional. */ }
   }
-  return refreshingSession;
 }
 
-async function authenticatedFetch(url, options = {}) {
-  const token = localStorage.getItem('patagon_access_token');
-  const send = () => fetch(url, { ...options, headers: { ...options.headers, ...getAuthHeader() } });
-  const response = await send();
-  if (response.status !== 401 || !token) return response;
-  const currentToken = localStorage.getItem('patagon_access_token');
-  if (!currentToken) return response;
-  if (currentToken !== token || await refreshSession()) return send();
-  return response;
+async function apiFetch(url, options = {}) {
+  const headers = { ...options.headers };
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(options.method || 'GET')) {
+    // Django rota CSRF al iniciar sesión. Obtener el valor actual evita reintentos de escrituras.
+    const session = await fetch(`${API_BASE_URL}/auth/session/`, { credentials: 'same-origin', cache: 'no-store' });
+    if (!session.ok) throw new Error('No se pudo comprobar la sesión.');
+    const data = await session.json();
+    if (!data.csrfToken) throw new Error('No se pudo obtener la protección de la solicitud.');
+    headers['X-CSRFToken'] = data.csrfToken;
+  }
+  return fetch(url, { ...options, headers, credentials: 'same-origin', cache: 'no-store' });
 }
 
-/**
- * Cliente API para conectar con el backend Django REST Framework con soporte JWT.
- */
 export const api = {
   async getStoreSettings() {
-    const response = await fetch(`${API_BASE_URL}/store-settings/`);
+    const response = await apiFetch(`${API_BASE_URL}/store-settings/`);
     if (!response.ok) throw new Error('No se pudieron cargar los datos de la tienda. Comprueba el backend.');
     return response.json();
   },
 
   async saveStoreSettings(data) {
-    const response = await authenticatedFetch(`${API_BASE_URL}/store-settings/`, {
+    const response = await apiFetch(`${API_BASE_URL}/store-settings/`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
     });
     if (!response.ok) {
@@ -64,49 +41,39 @@ export const api = {
     }
     return response.json();
   },
-  // --- AUTENTICACIÓN JWT ---
+  async getSession() {
+    const res = await apiFetch(`${API_BASE_URL}/auth/session/`);
+    if (!res.ok) throw new Error('No se pudo comprobar la sesión.');
+    return res.json();
+  },
+
   async login(username, password) {
-    const res = await fetch(`${API_BASE_URL}/token/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    // Retirar credenciales del esquema anterior, sin leerlas ni reutilizarlas.
+    clearLegacyCredentials();
+    const res = await apiFetch(`${API_BASE_URL}/auth/login/`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Usuario o contraseña incorrectos');
-    }
-
     const data = await res.json();
-    if (data.access) {
-      localStorage.setItem('patagon_access_token', data.access);
-    }
-    if (data.refresh) {
-      localStorage.setItem('patagon_refresh_token', data.refresh);
-    }
+    if (!res.ok) throw new Error(data.detail || 'No se pudo iniciar sesión.');
     return data;
   },
 
-  logout() {
-    localStorage.removeItem('patagon_access_token');
-    localStorage.removeItem('patagon_refresh_token');
-  },
-
-  getStoredToken() {
-    return localStorage.getItem('patagon_access_token');
+  async logout() {
+    const res = await apiFetch(`${API_BASE_URL}/auth/logout/`, { method: 'POST' });
+    if (!res.ok) throw new Error('No se pudo cerrar la sesión en el servidor. Inténtalo de nuevo.');
+    clearLegacyCredentials();
   },
 
   // --- PRODUCTOS ---
   async getProducts() {
-    let res = await fetch(`${API_BASE_URL}/products/`, { headers: getAuthHeader() });
-    // Un token vencido no significa que Django esté desconectado.
-    if (res.status === 401) res = await fetch(`${API_BASE_URL}/products/`, { headers: {} });
+    const res = await apiFetch(`${API_BASE_URL}/products/`);
     if (!res.ok) throw new Error(`Error obteniendo productos: ${res.statusText}`);
     return await res.json();
   },
 
   async getProduct(id) {
-    const res = await authenticatedFetch(`${API_BASE_URL}/products/${id}/`);
+    const res = await apiFetch(`${API_BASE_URL}/products/${id}/`);
     if (!res.ok) throw new Error(`Error obteniendo producto #${id}`);
     return await res.json();
   },
@@ -114,11 +81,10 @@ export const api = {
   async createProduct(data) {
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
     const headers = {
-      ...getAuthHeader(),
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     };
 
-    const res = await authenticatedFetch(`${API_BASE_URL}/products/`, {
+    const res = await apiFetch(`${API_BASE_URL}/products/`, {
       method: 'POST',
       headers,
       body: isFormData ? data : JSON.stringify(data),
@@ -134,11 +100,10 @@ export const api = {
   async updateProduct(id, data) {
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
     const headers = {
-      ...getAuthHeader(),
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     };
 
-    const res = await authenticatedFetch(`${API_BASE_URL}/products/${id}/`, {
+    const res = await apiFetch(`${API_BASE_URL}/products/${id}/`, {
       method: 'PUT',
       headers,
       body: isFormData ? data : JSON.stringify(data),
@@ -152,23 +117,17 @@ export const api = {
   },
 
   async deleteProduct(id) {
-    const res = await authenticatedFetch(`${API_BASE_URL}/products/${id}/`, {
+    const res = await apiFetch(`${API_BASE_URL}/products/${id}/`, {
       method: 'DELETE',
-      headers: {
-        ...getAuthHeader(),
-      },
     });
     if (!res.ok) throw new Error(`Error eliminando producto #${id}`);
     return true;
   },
 
   async seedProducts() {
-    const res = await authenticatedFetch(`${API_BASE_URL}/products/seed/`, {
+    const res = await apiFetch(`${API_BASE_URL}/products/seed/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) throw new Error('Error sembrando catálogo');
     return await res.json();
@@ -176,7 +135,7 @@ export const api = {
 
   // --- PEDIDOS (ORDERS) ---
   async createOrder(orderData) {
-    const res = await fetch(`${API_BASE_URL}/orders/`, {
+    const res = await apiFetch(`${API_BASE_URL}/orders/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData),
@@ -189,22 +148,16 @@ export const api = {
   },
 
   async getOrders() {
-    const res = await fetch(`${API_BASE_URL}/orders/`, {
-      headers: {
-        ...getAuthHeader(),
-      },
+    const res = await apiFetch(`${API_BASE_URL}/orders/`, {
     });
     if (!res.ok) throw new Error('Error obteniendo pedidos. Requiere permisos de administrador.');
     return await res.json();
   },
 
   async updateOrderStatus(id, status) {
-    const res = await fetch(`${API_BASE_URL}/orders/${id}/`, {
+    const res = await apiFetch(`${API_BASE_URL}/orders/${id}/`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
@@ -215,34 +168,41 @@ export const api = {
   },
 
   async confirmTransfer(id) {
-    const res = await fetch(`${API_BASE_URL}/orders/${id}/confirm-payment/`, { method: 'POST', headers: getAuthHeader() });
+    const res = await apiFetch(`${API_BASE_URL}/orders/${id}/confirm-payment/`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'No se pudo confirmar el pago.');
     return data;
   },
 
-  async trackOrder(id, email) {
-    const cleanId = String(id).replace('#', '').trim();
-    const cleanEmail = String(email).trim().toLowerCase();
-    const res = await fetch(
-      `${API_BASE_URL}/orders/track/?id=${encodeURIComponent(cleanId)}&email=${encodeURIComponent(cleanEmail)}`
-    );
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'No se encontró ningún pedido con ese número y correo.');
-    }
-    return await res.json();
+  async trackOrder(token) {
+    const res = await apiFetch(`${API_BASE_URL}/orders/track/`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Código no válido o vencido.');
+    return data;
   },
 
   // --- TESTIMONIOS / RESEÑAS DE CLIENTES ---
-  async getTestimonials() {
-    const res = await fetch(`${API_BASE_URL}/testimonials/`);
+  async getTestimonials(page = 1, paginated = false) {
+    const res = await apiFetch(`${API_BASE_URL}/testimonials/?page=${page}`);
     if (!res.ok) throw new Error('Error obteniendo testimonios');
-    return await res.json();
+    const data = await res.json();
+    return paginated ? data : data.results;
+  },
+
+  async approveTestimonial(id) {
+    const res = await apiFetch(`${API_BASE_URL}/testimonials/${id}/`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved: true }),
+    });
+    if (!res.ok) throw new Error('No se pudo aprobar la reseña.');
+    return res.json();
   },
 
   async createTestimonial(data) {
-    const res = await fetch(`${API_BASE_URL}/testimonials/`, {
+    const res = await apiFetch(`${API_BASE_URL}/testimonials/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -255,23 +215,17 @@ export const api = {
   },
 
   async deleteTestimonial(id) {
-    const res = await fetch(`${API_BASE_URL}/testimonials/${id}/`, {
+    const res = await apiFetch(`${API_BASE_URL}/testimonials/${id}/`, {
       method: 'DELETE',
-      headers: {
-        ...getAuthHeader(),
-      },
     });
     if (!res.ok) throw new Error(`Error eliminando testimonio #${id}`);
     return true;
   },
 
   async seedTestimonials() {
-    const res = await fetch(`${API_BASE_URL}/testimonials/seed/`, {
+    const res = await apiFetch(`${API_BASE_URL}/testimonials/seed/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) throw new Error('Error sembrando testimonios');
     return await res.json();
@@ -285,7 +239,7 @@ export const api = {
       if (subtotal < coupon.min_purchase) throw new Error(`Compra mínima: $${coupon.min_purchase.toLocaleString('es-CL')}`);
       return { ...coupon, valid: true, message: `Cupón ${coupon.code} aplicado` };
     }
-    const res = await fetch(`${API_BASE_URL}/coupons/validate/`, {
+    const res = await apiFetch(`${API_BASE_URL}/coupons/validate/`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, subtotal, shipping }),
     });

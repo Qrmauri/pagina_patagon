@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { INITIAL_TESTIMONIALS } from '../services/productsData';
 import { api } from '../services/api';
+import { DEMO_MODE } from '../services/checkout';
 import { useToast } from '../hooks/useToast';
 
 const STORAGE_KEY = 'patagon-testimonials';
@@ -18,6 +19,7 @@ const RATING_LABELS = {
 export default function TestimonialsSection() {
   const { addToast } = useToast();
   const [testimonials, setTestimonials] = useState(() => {
+    if (!DEMO_MODE) return [];
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -50,8 +52,10 @@ export default function TestimonialsSection() {
         if (!isMounted) return;
         if (Array.isArray(data) && data.length > 0) {
           setTestimonials(data);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          if (DEMO_MODE) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } else if (Array.isArray(data) && data.length === 0) {
+          setTestimonials([]);
+          if (!DEMO_MODE) return;
           try {
             await api.seedTestimonials();
             const seeded = await api.getTestimonials();
@@ -73,8 +77,9 @@ export default function TestimonialsSection() {
     };
   }, []);
 
-  // Guardar en localStorage
+  // La caché de reseñas ficticias solo pertenece a la demostración.
   useEffect(() => {
+    if (!DEMO_MODE) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(testimonials));
     } catch (e) {
@@ -111,11 +116,16 @@ export default function TestimonialsSection() {
       avatar: form.avatar || '👤',
     };
 
+    let published = false;
     try {
-      const created = await api.createTestimonial(newTestimonial);
-      setTestimonials((prev) => [created, ...prev]);
-      addToast('¡Muchas gracias! Tu opinión ha sido publicada exitosamente. ⭐', 'success');
+      await api.createTestimonial(newTestimonial);
+      published = true;
+      addToast('Gracias. Tu opinión será revisada antes de publicarse.', 'success');
     } catch (err) {
+      if (!DEMO_MODE) {
+        addToast('No pudimos publicar tu opinión. Inténtalo más tarde.', 'error');
+        return;
+      }
       console.warn('Guardando testimonio en modo local:', err.message);
       const localItem = {
         ...newTestimonial,
@@ -123,17 +133,20 @@ export default function TestimonialsSection() {
         created_at: new Date().toISOString(),
       };
       setTestimonials((prev) => [localItem, ...prev]);
+      published = true;
       addToast('¡Muchas gracias por dejarnos tu reseña! ⭐', 'success');
     } finally {
       setSubmitting(false);
-      setForm({
-        name: '',
-        city: '',
-        rating: 5,
-        comment: '',
-        avatar: '👩‍🦰',
-      });
-      setShowForm(false);
+      if (published) {
+        setForm({
+          name: '',
+          city: '',
+          rating: 5,
+          comment: '',
+          avatar: '👩‍🦰',
+        });
+        setShowForm(false);
+      }
     }
   };
 
@@ -142,9 +155,9 @@ export default function TestimonialsSection() {
       <div className="section-heading" style={{ textAlign: 'center', justifyContent: 'center', marginBottom: '24px' }}>
         <div>
           <span className="section-kicker">Comunidad Patagon</span>
-          <h2>Reseñas de ejemplo</h2>
+          <h2>{DEMO_MODE ? 'Reseñas de ejemplo' : 'Opiniones de la comunidad'}</h2>
           <p style={{ color: '#7a746e', maxWidth: 'var(--measure-text)', margin: '8px auto 0', fontSize: 'var(--text-base)' }}>
-            Estas reseñas son ficticias y muestran cómo se vería la sección de opiniones de una tienda.
+            {DEMO_MODE ? 'Estas reseñas son ficticias y muestran cómo se vería la sección de opiniones de una tienda.' : 'Experiencias compartidas por quienes conocen Patagon.'}
           </p>
         </div>
       </div>
@@ -322,6 +335,7 @@ export default function TestimonialsSection() {
               Tu Comentario o Experiencia *
             </span>
             <textarea
+              maxLength={2000}
               name="comment"
               value={form.comment}
               onChange={handleChange}

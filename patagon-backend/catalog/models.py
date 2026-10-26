@@ -1,4 +1,9 @@
 from django.db import models
+import secrets
+
+
+def new_tracking_token():
+    return secrets.token_urlsafe(32)
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
@@ -66,6 +71,8 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Estado")
     payment_status = models.CharField(max_length=20, choices=[('pending', 'Pendiente'), ('paid', 'Confirmado')], default='pending')
     paid_at = models.DateTimeField(blank=True, null=True)
+    inventory_committed = models.BooleanField(default=False, editable=False)
+    tracking_token = models.CharField(max_length=64, default=new_tracking_token, unique=True, editable=False)
     items_data = models.JSONField(default=list, verbose_name="Productos del pedido")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
 
@@ -101,6 +108,7 @@ class Coupon(models.Model):
 
 
 class Testimonial(models.Model):
+    approved = models.BooleanField(default=False, verbose_name='Aprobada para publicación')
     name = models.CharField(max_length=150, verbose_name="Nombre del cliente")
     city = models.CharField(max_length=100, blank=True, default="Chile", verbose_name="Ciudad / Región")
     rating = models.PositiveSmallIntegerField(default=5, verbose_name="Calificación (1-5)")

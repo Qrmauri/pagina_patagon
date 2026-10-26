@@ -100,6 +100,8 @@ class OrderSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
+        if request and request.user.is_staff:
+            data['tracking_token'] = instance.tracking_token
         if not request or not request.user.is_staff:
             data['items_data'] = [{k: v for k, v in item.items() if k != 'cost_price'} for item in data['items_data']]
         return data
@@ -112,9 +114,10 @@ class CouponSerializer(serializers.ModelSerializer):
 
 
 class TestimonialSerializer(serializers.ModelSerializer):
+    comment = serializers.CharField(max_length=2000)
     class Meta:
         model = Testimonial
-        fields = ['id', 'name', 'city', 'rating', 'comment', 'avatar', 'created_at']
+        fields = ['id', 'name', 'city', 'rating', 'comment', 'avatar', 'created_at', 'approved']
         read_only_fields = ['id', 'created_at']
 
     def validate_rating(self, value):

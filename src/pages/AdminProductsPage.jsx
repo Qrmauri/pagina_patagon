@@ -50,6 +50,9 @@ export default function AdminProductsPage() {
   const [selectedOrderReceipt, setSelectedOrderReceipt] = useState(null)
   const [testimonials, setTestimonials] = useState([])
   const [loadingTestimonials, setLoadingTestimonials] = useState(false)
+  const [reviewPage, setReviewPage] = useState(1)
+  const [reviewPages, setReviewPages] = useState({ next: null, previous: null })
+  const [approvingReview, setApprovingReview] = useState(null)
 
   useEffect(() => {
     if ((activeTab === 'orders' || activeTab === 'analytics') && backendAvailable) {
@@ -61,22 +64,28 @@ export default function AdminProductsPage() {
         .finally(() => setLoadingOrders(false))
     } else if (activeTab === 'reviews') {
       setLoadingTestimonials(true)
-      api.getTestimonials()
+      api.getTestimonials(reviewPage, true)
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setTestimonials(data)
-          } else {
-            const saved = localStorage.getItem('patagon-testimonials')
-            if (saved) setTestimonials(JSON.parse(saved))
-          }
+          setTestimonials(data.results)
+          setReviewPages({ next: data.next, previous: data.previous })
         })
-        .catch(() => {
-          const saved = localStorage.getItem('patagon-testimonials')
-          if (saved) setTestimonials(JSON.parse(saved))
-        })
+        .catch(() => addToast('No se pudieron cargar las reseñas.', 'error'))
         .finally(() => setLoadingTestimonials(false))
     }
-  }, [activeTab, backendAvailable])
+  }, [activeTab, backendAvailable, reviewPage, addToast])
+
+  const approveReview = async (id) => {
+    setApprovingReview(id)
+    try {
+      const approved = await api.approveTestimonial(id)
+      setTestimonials(previous => previous.map(review => review.id === id ? approved : review))
+      addToast('Reseña aprobada para publicación.', 'success')
+    } catch (err) {
+      addToast(err.message, 'error')
+    } finally {
+      setApprovingReview(null)
+    }
+  }
 
   // Exportar pedidos a CSV (Excel UTF-8)
   const exportOrdersToCSV = () => {
@@ -1034,11 +1043,16 @@ export default function AdminProductsPage() {
                   Opiniones y Reseñas de Clientes ({testimonials.length})
                 </h2>
                 <p style={{ color: '#7a746e', fontSize: 'var(--text-base)', marginTop: '4px' }}>
-                  Aquí puedes moderar los comentarios y calificaciones dejados por los compradores en la tienda.
+                  Las reseñas pendientes solo se publican después de aprobarlas.
                 </p>
               </div>
             </div>
 
+            <nav aria-label="Páginas de reseñas" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+              <button type="button" disabled={!reviewPages.previous || loadingTestimonials} onClick={() => setReviewPage(page => page - 1)}>Anterior</button>
+              <span>Página {reviewPage}</span>
+              <button type="button" disabled={!reviewPages.next || loadingTestimonials} onClick={() => setReviewPage(page => page + 1)}>Siguiente</button>
+            </nav>
             {loadingTestimonials ? (
               <p style={{ textAlign: 'center', color: '#7a746e', padding: '30px' }}>Cargando opiniones...</p>
             ) : testimonials.length === 0 ? (
@@ -1074,6 +1088,9 @@ export default function AdminProductsPage() {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        {review.approved ? <span>Publicada</span> : <button type="button" disabled={approvingReview === review.id} onClick={() => approveReview(review.id)} style={secondaryButtonStyle}>
+                          {approvingReview === review.id ? 'Aprobando…' : 'Aprobar reseña'}
+                        </button>}
                         {(() => {
                           const safeRating = Math.min(5, Math.max(1, Math.round(Number(review.rating) || 5)));
                           return (

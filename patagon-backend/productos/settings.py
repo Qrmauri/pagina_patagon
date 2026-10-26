@@ -3,7 +3,6 @@ Django settings for productos project.
 """
 
 from pathlib import Path
-from datetime import timedelta
 import os
 import secrets
 from django.core.exceptions import ImproperlyConfigured
@@ -25,6 +24,31 @@ if not SECRET_KEY:
         pass
     SECRET_KEY = secret_path.read_text(encoding='utf-8').strip()
 
+if not DEBUG and (len(SECRET_KEY) < 50 or len(set(SECRET_KEY)) < 5 or SECRET_KEY.startswith('django-insecure-')):
+    raise ImproperlyConfigured('DJANGO_SECRET_KEY debe ser una clave aleatoria de al menos 50 caracteres en producción.')
+
+# HTTPS es obligatorio fuera del desarrollo local. El proxy solo se confía
+# cuando el operador confirma que elimina y reescribe X-Forwarded-Proto.
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 8 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_HSTS_SECONDS = 0 if DEBUG else 3600
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG and os.environ.get('DJANGO_HSTS_INCLUDE_SUBDOMAINS', 'false').lower() == 'true'
+SECURE_HSTS_PRELOAD = not DEBUG and os.environ.get('DJANGO_HSTS_PRELOAD', 'false').lower() == 'true'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if os.environ.get('DJANGO_TRUST_PROXY', 'false').lower() == 'true' else None
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173' if DEBUG else '').split(',') if origin.strip()]
+ALLOW_DEMO_DATA = DEBUG and os.environ.get('DJANGO_ALLOW_DEMO_DATA', 'true').lower() == 'true'
+DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',') if host.strip()]
 
 # Application definition
@@ -38,7 +62,6 @@ INSTALLED_APPS = [
     # Third party apps
     'corsheaders',
     'rest_framework',
-    'rest_framework_simplejwt',
     'django_filters',
     # Local apps
     'catalog',
@@ -102,6 +125,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media Files (Archivos subidos por usuarios: JPEG, PNG, etc.)
 MEDIA_URL = '/media/'
@@ -113,18 +137,9 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': None,  # Devuelve listas completas para el front-end simple
-}
-
-# Configuración de SimpleJWT
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 # Configuración CORS para comunicarse con el frontend de Vite
@@ -133,7 +148,7 @@ CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.environ.get('DJANGO_CORS
 CORS_ALLOW_CREDENTIALS = False
 
 # Emails transaccionales (Consola en desarrollo para pruebas inmediatas)
-EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.dummy.EmailBackend')
 DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'Patagon Store <noreply@example.com>')
 EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', '587'))

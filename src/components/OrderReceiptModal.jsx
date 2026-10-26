@@ -175,6 +175,7 @@ export default function OrderReceiptModal({ order, onClose }) {
             <div><strong>Fecha:</strong> {formattedDate}</div>
             <div><strong>Email:</strong> {order.customer_email}</div>
             <div><strong>Teléfono:</strong> {order.customer_phone || 'No registrado'}</div>
+            {order.tracking_token && <div style={{ overflowWrap: 'anywhere' }}><strong>Código privado de seguimiento:</strong> {order.tracking_token}</div>}
             <div>
               <strong>Medio de Pago:</strong>{' '}
               {order.payment_method === 'transferencia' ? 'Transferencia pendiente' : 'Pago de demostración'}

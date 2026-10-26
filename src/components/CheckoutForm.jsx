@@ -334,7 +334,7 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
                   disabled={validatingCoupon}
                   style={{
                     padding: '10px 18px',
-                    background: '#2563eb',
+                    background: 'var(--brand-teal-dark)',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '8px',
@@ -389,7 +389,7 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
                 gap: '12px',
                 padding: '16px',
                 borderRadius: '12px',
-                border: paymentMethod === 'webpay' ? '2px solid #e11d48' : '1px solid #cbd5e1',
+                border: paymentMethod === 'webpay' ? '2px solid var(--brand-red-dark)' : '1px solid #cbd5e1',
                 background: paymentMethod === 'webpay' ? '#fff1f2' : '#ffffff',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -401,12 +401,12 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
                 value="webpay"
                 checked={paymentMethod === 'webpay'}
                 onChange={() => setPaymentMethod('webpay')}
-                style={{ width: '18px', height: '18px', accentColor: '#e11d48' }}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--brand-red-dark)' }}
               />
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <strong style={{ fontSize: 'var(--text-base)', color: '#0f172a' }}>Pago de demostración</strong>
-                  <span style={{ background: '#e11d48', color: '#fff', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', padding: '2px 6px', borderRadius: '4px' }}>
+                  <span style={{ background: 'var(--brand-red-dark)', color: '#fff', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', padding: '2px 6px', borderRadius: '4px' }}>
                     RECOMENDADO
                   </span>
                 </div>
@@ -425,7 +425,7 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
                 gap: '12px',
                 padding: '16px',
                 borderRadius: '12px',
-                border: paymentMethod === 'transferencia' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                border: paymentMethod === 'transferencia' ? '2px solid var(--brand-teal-dark)' : '1px solid #cbd5e1',
                 background: paymentMethod === 'transferencia' ? '#eff6ff' : '#ffffff',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -437,7 +437,7 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
                 value="transferencia"
                 checked={paymentMethod === 'transferencia'}
                 onChange={() => setPaymentMethod('transferencia')}
-                style={{ width: '18px', height: '18px', accentColor: '#2563eb' }}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--brand-teal-dark)' }}
               />
               <div style={{ flex: 1 }}>
                 <strong style={{ fontSize: 'var(--text-base)', color: '#0f172a' }}>Transferencia Bancaria Directa</strong>
@@ -502,7 +502,7 @@ export default function CheckoutForm({ cart, total, initialCoupon = null, onSucc
           className="submit-order-btn"
           disabled={loading}
           style={{
-            background: paymentMethod === 'webpay' ? '#e11d48' : '#2563eb',
+            background: paymentMethod === 'webpay' ? 'var(--brand-red-dark)' : 'var(--brand-teal-dark)',
             borderColor: paymentMethod === 'webpay' ? '#be123c' : '#1d4ed8',
             boxShadow: paymentMethod === 'webpay' ? '0 4px 14px rgba(225,29,72,0.3)' : '0 4px 14px rgba(37,99,235,0.3)',
           }}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 
 export default function AdminLayout({
   children,
@@ -10,12 +11,17 @@ export default function AdminLayout({
   pendingOrdersCount = 0,
 }) {
   const { logout } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/admin/login');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
   };
 
   const navItems = [

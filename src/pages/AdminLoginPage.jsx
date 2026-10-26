@@ -7,11 +7,13 @@ import { useToast } from '../hooks/useToast';
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isAdmin } = useAuth();
+  const { login, isAdmin, checkingSession } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (checkingSession) return <p role="status">Comprobando sesión…</p>;
 
   // Si ya está autenticado, redirigir limpiamente
   if (isAdmin) {
@@ -28,7 +30,7 @@ export default function AdminLoginPage() {
         if (result.warning) {
           addToast(result.warning, 'info');
         }
-        addToast('Sesión de administrador iniciada con token JWT', 'success');
+        addToast('Sesión de administrador iniciada', 'success');
         navigate('/admin');
       } else {
         addToast(result.error || 'Error al iniciar sesión', 'error');
@@ -102,8 +104,7 @@ export default function AdminLoginPage() {
             color: '#7a746e',
             textAlign: 'center',
           }}>
-            <span>💡 <strong>Credenciales por defecto:</strong></span><br />
-            Usuario: <code>admin</code> • Contraseña: <code>patagon2025</code>
+            Acceso exclusivo para personal autorizado. Solicita tus credenciales a la administración de la tienda.
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '18px' }}>

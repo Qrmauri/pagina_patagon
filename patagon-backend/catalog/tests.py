@@ -15,7 +15,7 @@ class CommercialImprovementTests(APITestCase):
 
     def test_only_admin_can_confirm_transfer_and_repeated_confirmation_is_safe(self):
         path = f'/api/orders/{self.order.id}/confirm-payment/'
-        self.assertEqual(self.client.post(path).status_code, 401)
+        self.assertEqual(self.client.post(path).status_code, 403)
         self.client.force_authenticate(self.admin)
         first = self.client.post(path)
         self.assertEqual(first.status_code, 200)
@@ -34,8 +34,9 @@ class CommercialImprovementTests(APITestCase):
         self.order.items_data = [{'id': 1, 'quantity': 1, 'cost_price': 5000}]
         self.order.save()
         self.assertNotIn('cost_price', self.client.get('/api/products/').data[0])
-        tracked = self.client.get('/api/orders/track/', {'id': self.order.id, 'email': self.order.customer_email})
-        self.assertNotIn('cost_price', tracked.data['items_data'][0])
+        tracked = self.client.post('/api/orders/track/', {'token': self.order.tracking_token})
+        self.assertEqual(tracked.status_code, 200)
+        self.assertNotIn('items_data', tracked.data)
 
     def test_client_cannot_mark_a_new_order_as_paid(self):
         product = Product.objects.create(title='Libro', price=15000, stock=2, cost_price=5000)
@@ -75,13 +76,6 @@ class PatagonApiTests(APITestCase):
             description='Peluche suave'
         )
 
-        # Obtener token JWT
-        res = self.client.post('/api/token/', {
-            'username': 'admin',
-            'password': 'patagon2025'
-        }, format='json')
-        self.token = res.data.get('access')
-
     def test_anonymous_can_list_products(self):
         res = self.client.get('/api/products/')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -95,10 +89,10 @@ class PatagonApiTests(APITestCase):
             'stock': 5,
             'description': 'Item no autorizado'
         }, format='json')
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_create_product_with_stock(self):
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.client.force_authenticate(self.admin_user)
         res = self.client.post('/api/products/', {
             'title': 'Robot Inteligente',
             'category': 'electrónica',
@@ -109,7 +103,7 @@ class PatagonApiTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['stock'], 7)
 
-    def test_anonymous_can_place_order_and_discounts_stock(self):
+    def test_anonymous_can_place_order_without_reserving_stock(self):
         initial_stock = self.product.stock
         order_payload = {
             'customer_name': 'Juan Pérez',
@@ -135,9 +129,9 @@ class PatagonApiTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['status'], 'pending')
 
-        # Verificar que el stock disminuyó de 10 a 7
+        # Los pedidos pendientes no reservan inventario.
         self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, initial_stock - 3)
+        self.assertEqual(self.product.stock, initial_stock)
 
     def test_insufficient_stock_rejects_order(self):
         # Intentar comprar más del stock disponible (25 unidades cuando solo hay 7)
@@ -171,7 +165,7 @@ class PatagonApiTests(APITestCase):
 
     def test_anonymous_cannot_read_orders(self):
         res = self.client.get('/api/orders/')
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_update_order_status(self):
         # Crear orden
@@ -183,11 +177,11 @@ class PatagonApiTests(APITestCase):
             city='Santiago',
             postal_code='1000',
             total=15000,
-            status='pending'
+            status='pending', payment_status='paid'
         )
 
         # Admin cambia estado a "shipped"
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.client.force_authenticate(self.admin_user)
         res = self.client.patch(f'/api/orders/{order.id}/', {'status': 'shipped'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
@@ -207,10 +201,10 @@ class PatagonApiTests(APITestCase):
 
         # Anónimo NO puede borrar testimonio
         res_del = self.client.delete(f'/api/testimonials/{testimonio_id}/')
-        self.assertEqual(res_del.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(res_del.status_code, status.HTTP_403_FORBIDDEN)
 
         # Admin SÍ puede borrar testimonio
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+        self.client.force_authenticate(self.admin_user)
         res_del_auth = self.client.delete(f'/api/testimonials/{testimonio_id}/')
         self.assertEqual(res_del_auth.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -227,17 +221,17 @@ class PatagonApiTests(APITestCase):
         )
 
         # Consulta válida
-        res = self.client.get(f'/api/orders/track/?id={order.id}&email=rastreo@patagon.cl')
+        res = self.client.post('/api/orders/track/', {'token': order.tracking_token})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['status'], 'processing')
-        self.assertEqual(res.data['customer_name'], 'Rastreo Test')
+        self.assertNotIn('customer_name', res.data)
 
         # Email incorrecto -> 404
-        res_wrong = self.client.get(f'/api/orders/track/?id={order.id}&email=otro@patagon.cl')
+        res_wrong = self.client.post('/api/orders/track/', {'token': 'invalid' * 8})
         self.assertEqual(res_wrong.status_code, status.HTTP_404_NOT_FOUND)
 
         # Faltan parámetros -> 400
-        res_empty = self.client.get(f'/api/orders/track/')
+        res_empty = self.client.post('/api/orders/track/', {})
         self.assertEqual(res_empty.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_coupon_validation(self):
@@ -310,11 +304,12 @@ class PatagonApiTests(APITestCase):
         self.assertEqual(Order.objects.count(), 0)
 
     def test_cancellation_restores_stock_once_and_cannot_be_reopened(self):
-        response = self.client.post('/api/orders/', self.order_payload(), format='json')
+        response = self.client.post('/api/orders/', self.order_payload(payment_method='transferencia'), format='json')
         self.assertEqual(response.status_code, 201)
+        self.client.force_authenticate(self.admin_user)
+        self.assertEqual(self.client.post(f"/api/orders/{response.data['id']}/confirm-payment/").status_code, 200)
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 9)
-        self.client.force_authenticate(self.admin_user)
         url = f"/api/orders/{response.data['id']}/"
         for _ in range(2):
             cancelled = self.client.patch(url, {'status': 'cancelled'}, format='json')
@@ -325,10 +320,10 @@ class PatagonApiTests(APITestCase):
         self.assertEqual(reopened.status_code, 400)
         self.assertEqual(Order.objects.get(pk=response.data['id']).status, 'cancelled')
 
-    def test_invalid_tracking_ids_return_bad_request(self):
+    def test_email_and_id_never_authorize_tracking(self):
         for order_id in ['abc', '-1', '0', '1.5', '9' * 100]:
             with self.subTest(order_id=order_id):
-                response = self.client.get('/api/orders/track/', {'id': order_id, 'email': 'test@example.com'})
+                response = self.client.post('/api/orders/track/', {'id': order_id, 'email': 'test@example.com'})
                 self.assertEqual(response.status_code, 400)
 
     def test_order_items_cannot_be_changed_before_cancellation(self):
@@ -408,21 +403,17 @@ class ProductUploadTests(APITestCase):
         self.assertIn('image', response.data)
         self.assertEqual(Product.objects.count(), 0)
 
-    def test_expired_access_can_refresh_and_create_product(self):
-        from datetime import timedelta
-        from rest_framework_simplejwt.tokens import RefreshToken
-        refresh = RefreshToken.for_user(self.owner)
-        access = refresh.access_token
-        access.set_exp(lifetime=timedelta(seconds=-1))
+    def test_expired_session_requires_login_before_creating_product(self):
+        from django.contrib.sessions.models import Session
+        from django.utils import timezone
         self.client.force_authenticate(user=None)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
+        self.assertTrue(self.client.login(username='upload-owner', password='test-upload-only'))
+        Session.objects.update(expire_date=timezone.now())
         denied = self.client.post('/api/products/', self.payload, format='json')
-        self.assertEqual(denied.status_code, 401)
+        self.assertEqual(denied.status_code, 403)
         self.assertEqual(Product.objects.count(), 0)
-        self.client.credentials()
-        renewed = self.client.post('/api/token/refresh/', {'refresh': str(refresh)}, format='json')
-        self.assertEqual(renewed.status_code, 200, renewed.data)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {renewed.data['access']}")
+        logged_in = self.client.post('/api/auth/login/', {'username': 'upload-owner', 'password': 'test-upload-only'}, format='json')
+        self.assertEqual(logged_in.status_code, 200)
         saved = self.client.post('/api/products/', self.payload, format='json')
         self.assertEqual(saved.status_code, 201, saved.data)
         self.assertEqual(Product.objects.count(), 1)

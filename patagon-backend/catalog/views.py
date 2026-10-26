@@ -2,19 +2,20 @@ from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from django.db import transaction
 from django.db.models import F
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from urllib.parse import urlencode
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Order, Testimonial, Coupon
 from .serializers import ProductSerializer, OrderSerializer, TestimonialSerializer, CouponSerializer
 from .models import StoreSettings
 from .serializers import StoreSettingsSerializer
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+from datetime import timedelta
 
 
 class StoreSettingsView(APIView):
@@ -136,6 +137,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='seed')
     def seed(self, request):
         """Poblar o restablecer productos de demostración."""
+        if not settings.ALLOW_DEMO_DATA:
+            raise PermissionDenied('La carga de ejemplos está deshabilitada en este entorno.')
         created_count = 0
         for item in INITIAL_PRODUCTS_DATA:
             obj, created = Product.objects.get_or_create(
@@ -151,10 +154,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'put', 'patch', 'head', 'options']
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        response['Cache-Control'] = 'no-store'
+        response['Referrer-Policy'] = 'no-referrer'
+        return response
 
     @action(detail=True, methods=['post'], url_path='confirm-payment')
     def confirm_payment(self, request, pk=None):
@@ -163,9 +173,15 @@ class OrderViewSet(viewsets.ModelViewSet):
             if order.status == 'cancelled' or order.payment_method != 'transferencia':
                 raise ValidationError({'detail': 'Solo se puede confirmar una transferencia de un pedido vigente.'})
             if order.payment_status != 'paid':
+                if not order.inventory_committed:
+                    for item in sorted(order.items_data, key=lambda item: item['id']):
+                        updated = Product.objects.filter(pk=item['id'], stock__gte=item['quantity']).update(stock=F('stock') - item['quantity'])
+                        if not updated:
+                            raise ValidationError({'detail': 'Stock insuficiente. No se confirmó el pago; revisa el pedido y concilia o devuelve la transferencia.'})
+                    order.inventory_committed = True
                 order.payment_status = 'paid'
                 order.paid_at = timezone.now()
-                order.save(update_fields=['payment_status', 'paid_at'])
+                order.save(update_fields=['payment_status', 'paid_at', 'inventory_committed'])
         return Response(self.get_serializer(order).data)
 
     def update(self, request, *args, **kwargs):
@@ -179,9 +195,13 @@ class OrderViewSet(viewsets.ModelViewSet):
             new_status = serializer.validated_data.get('status', order.status)
             if order.status == 'cancelled' and new_status != 'cancelled':
                 raise ValidationError({'detail': 'Un pedido cancelado no puede reabrirse. Crea un nuevo pedido.'})
-            if new_status == 'cancelled' and order.status != 'cancelled':
+            if new_status not in ['pending', 'cancelled'] and order.payment_status != 'paid':
+                raise ValidationError({'detail': 'Confirma el pago antes de preparar o despachar el pedido.'})
+            if new_status == 'cancelled' and order.status != 'cancelled' and order.inventory_committed:
                 for item in order.items_data:
                     Product.objects.filter(pk=item['id']).update(stock=F('stock') + item['quantity'])
+                order.inventory_committed = False
+                order.save(update_fields=['inventory_committed'])
             serializer.save()
         return Response(serializer.data)
 
@@ -236,9 +256,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 elif coupon.discount_type == 'fixed':
                     discount = min(subtotal, coupon.discount_value)
 
-            for product in products:
-                product.stock -= quantities[product.id]
-                product.save(update_fields=['stock'])
+            # Una solicitud sin pago no reserva inventario. Se revalida al confirmar.
             order = serializer.save(
                 items_data=trusted_items, subtotal=subtotal, shipping=shipping,
                 discount_amount=discount, coupon_code=code or None,
@@ -248,15 +266,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         # 4. Enviar email transaccional de confirmación
         try:
             self._send_order_confirmation_email(order)
-        except Exception as mail_err:
-            print(f"Aviso: No se pudo enviar el email de confirmación: {mail_err}")
+        except Exception:
+            # No registrar direcciones, enlaces privados ni respuestas del proveedor.
+            import logging
+            logging.getLogger(__name__).warning('No se pudo enviar la confirmación del pedido %s.', order.pk)
 
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        headers['Cache-Control'] = 'no-store'
+        return Response({**serializer.data, 'tracking_token': order.tracking_token}, status=status.HTTP_201_CREATED, headers=headers)
 
     def _send_order_confirmation_email(self, order):
         subject = f"¡Confirmación de Pedido #{order.id} - Patagon Store! 🛍️"
-        tracking_url = f"{settings.STOREFRONT_URL.rstrip('/')}/seguimiento?{urlencode({'id': order.id, 'email': order.customer_email})}"
+        tracking_url = f"{settings.STOREFRONT_URL.rstrip('/')}/seguimiento#token={order.tracking_token}"
         
         items_summary = "\n".join([
             f" - {it.get('title', 'Producto')} x{it.get('quantity', 1)} (${int(it.get('price', 0)):,} CLP)"
@@ -304,36 +325,36 @@ El Equipo de Patagon Store
             fail_silently=False,
         )
 
-    @action(detail=False, methods=['get'], url_path='track')
+    @action(detail=False, methods=['post'], url_path='track')
     def track(self, request):
-        """Permite a un comprador consultar el estado de su pedido con ID y Email."""
-        order_id = request.query_params.get('id', '').strip().replace('#', '')
-        email = request.query_params.get('email', '').strip().lower()
-
-        if not order_id or not email:
-            return Response(
-                {"detail": "Debes proporcionar el número de pedido y el correo electrónico."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if not order_id.isascii() or not order_id.isdecimal() or len(order_id) > 19 or not 0 < int(order_id) <= 9223372036854775807:
-            return Response(
-                {"detail": "El número de pedido debe ser un entero positivo válido."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        order = Order.objects.filter(id=int(order_id), customer_email__iexact=email).first()
+        """El código acredita acceso; correo e ID nunca son credenciales."""
+        token = request.data.get('token') if isinstance(request.data, dict) else None
+        if not isinstance(token, str) or not 40 <= len(token) <= 64:
+            raise ValidationError({'detail': 'Ingresa el código privado recibido al comprar.'})
+        order = Order.objects.filter(tracking_token=token, created_at__gte=timezone.now() - timedelta(days=30)).first()
         if not order:
-            return Response(
-                {"detail": "No encontramos ningún pedido que coincida con ese número y correo."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+            return Response({'detail': 'Código no válido o vencido.'}, status=404, headers={'Cache-Control': 'no-store'})
+        return Response({key: getattr(order, key) for key in ['id', 'status', 'payment_status', 'created_at']}, headers={'Cache-Control': 'no-store'})
+
+
+class ReviewPagination(PageNumberPagination):
+    page_size = 20
 
 
 class TestimonialViewSet(viewsets.ModelViewSet):
+    pagination_class = ReviewPagination
     queryset = Testimonial.objects.all()
     serializer_class = TestimonialSerializer
     filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return super().get_queryset()
+        return super().get_queryset().filter(approved=True)
+
+    def perform_create(self, serializer):
+        serializer.save(approved=False)
 
     def get_permissions(self):
         if self.action in ['list', 'create']:
@@ -345,6 +366,8 @@ class TestimonialViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='seed')
     def seed(self, request):
         """Poblar o restablecer testimonios iniciales de demostración."""
+        if not settings.ALLOW_DEMO_DATA:
+            raise PermissionDenied('La carga de ejemplos está deshabilitada en este entorno.')
         created_count = 0
         for item in INITIAL_TESTIMONIALS_DATA:
             obj, created = Testimonial.objects.get_or_create(
@@ -411,8 +434,8 @@ class CouponViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Sembrar cupones por defecto si no existen
-        if not Coupon.objects.exists():
+        # Nunca crear promociones de ejemplo a partir de una consulta real.
+        if settings.ALLOW_DEMO_DATA and not Coupon.objects.exists():
             for c in INITIAL_COUPONS:
                 Coupon.objects.get_or_create(code=c['code'], defaults=c)
 

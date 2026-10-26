@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { INITIAL_PRODUCTS, parsePrice, withCatalogIllustration } from '../services/productsData';
+import { parsePrice } from '../services/productsData';
 import { api } from '../services/api';
 import { ensureCatalogConnection } from '../services/catalogConnection';
+import { DEMO_MODE } from '../services/checkout';
+import { initialCatalog, presentCatalog } from '../services/catalogMode';
 
 import { ProductsContext } from './products-context';
 
@@ -9,18 +11,11 @@ const STORAGE_KEY = 'patagon-products';
 
 export function ProductsProvider({ children }) {
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(withCatalogIllustration);
-        }
-      } catch (e) {
-        console.error('Error leyendo productos de localStorage:', e);
-      }
+    let cached = null;
+    if (DEMO_MODE) {
+      try { cached = localStorage.getItem(STORAGE_KEY); } catch { /* Navegación privada. */ }
     }
-    return INITIAL_PRODUCTS;
+    return initialCatalog(cached, DEMO_MODE);
   });
 
   const [loading, setLoading] = useState(true);
@@ -31,14 +26,17 @@ export function ProductsProvider({ children }) {
     try {
       const data = await api.getProducts();
       if (!Array.isArray(data)) throw new Error('Respuesta de catálogo inválida');
-      const catalog = data.map(withCatalogIllustration);
+      const catalog = presentCatalog(data, DEMO_MODE);
       setProducts(catalog);
       setBackendAvailable(true);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+      if (DEMO_MODE) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog)); } catch { /* Caché opcional. */ }
+      }
       return catalog;
     } catch (err) {
-      // Si el servidor de Django no está iniciado, funciona elegantemente con localStorage
-      console.warn('Backend Django no detectado o inactivo. Usando almacenamiento local.', err.message);
+      // Solo la demostración conserva datos locales ante una caída del servidor.
+      console.warn('No pudimos consultar el catálogo del servidor.', err.message);
+      if (!DEMO_MODE) setProducts([]);
       setBackendAvailable(false);
       if (strict) throw new Error('No pudimos comprobar precios y stock. Intenta nuevamente antes de comprar.', { cause: err });
       return null;
@@ -52,8 +50,9 @@ export function ProductsProvider({ children }) {
     fetchFromBackend();
   }, [fetchFromBackend]);
 
-  // Guardar en localStorage como fallback
+  // Solo la demostración utiliza un catálogo local.
   useEffect(() => {
+    if (!DEMO_MODE) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
     } catch (e) {
@@ -84,7 +83,7 @@ export function ProductsProvider({ children }) {
     } else {
       body = { ...payload, ...(!image.startsWith('/products/illustrations/') ? { image } : {}) };
     }
-    const saved = withCatalogIllustration(id == null ? await api.createProduct(body) : await api.updateProduct(id, body));
+    const saved = presentCatalog([id == null ? await api.createProduct(body) : await api.updateProduct(id, body)], DEMO_MODE)[0];
     setProducts(previous => id == null ? [saved, ...previous] : previous.map(product => product.id === id ? saved : product));
     return saved;
   };
@@ -99,6 +98,7 @@ export function ProductsProvider({ children }) {
   };
 
   const resetToDefault = async () => {
+    if (!DEMO_MODE) throw new Error('El catálogo de ejemplo solo está disponible en demostración.');
     await ensureCatalogConnection(backendAvailable, fetchFromBackend);
     await api.seedProducts();
     await fetchFromBackend();

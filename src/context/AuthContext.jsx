@@ -1,47 +1,34 @@
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
-
+import { api, clearLegacyCredentials } from '../services/api';
 import { AuthContext } from '../hooks/useAuth';
 
-const ADMIN_STORAGE_KEY = 'patagon_admin_auth';
-
 export function AuthProvider({ children }) {
-  const [isAdmin, setIsAdmin] = useState(() => {
-    const hasToken = !!api.getStoredToken();
-    return hasToken;
-  });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
-    if (isAdmin) {
-      localStorage.setItem(ADMIN_STORAGE_KEY, 'true');
-    } else {
-      localStorage.removeItem(ADMIN_STORAGE_KEY);
-    }
-  }, [isAdmin]);
+    let active = true;
+    clearLegacyCredentials();
+    api.getSession().then(data => { if (active) setIsAdmin(data.isAdmin); })
+      .catch(() => { if (active) setIsAdmin(false); })
+      .finally(() => { if (active) setCheckingSession(false); });
+    return () => { active = false; };
+  }, []);
 
   const login = async (username, password) => {
     try {
-      // 1. Intentar autenticación real con JWT en Django REST Framework
       await api.login(username.trim(), password);
       setIsAdmin(true);
       return { success: true };
     } catch (err) {
-      return {
-        success: false,
-        error: err.message || 'Usuario o contraseña incorrectos.',
-      };
+      return { success: false, error: err.message || 'No se pudo iniciar sesión.' };
     }
   };
 
-  const logout = () => {
-    api.logout();
+  const logout = async () => {
+    await api.logout();
     setIsAdmin(false);
   };
 
-  return (
-    <AuthContext.Provider value={{ isAdmin, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ isAdmin, checkingSession, login, logout }}>{children}</AuthContext.Provider>;
 }
-
